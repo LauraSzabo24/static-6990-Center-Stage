@@ -33,6 +33,5 @@ dependencies {
 }
 
 dependencies {
-    implementation project(':sdk')
-    project(':sdk')
+    implementation 'org.openftc:easyopencv:1.7.0'
 }
