@@ -41,7 +41,7 @@ public class PropRecognitionTest1 extends LinearOpMode
 
     public void initialize()
     {
-
+        tagNumber = 0;
     }
     @Override
     public void runOpMode()
@@ -72,6 +72,7 @@ public class PropRecognitionTest1 extends LinearOpMode
         telemetry.setMsTransmissionInterval(50);
 
         while (opModeIsActive() && !(tagNumber == 1) && !(tagNumber == 2) && !(tagNumber == 3) && !(tagNumber == 4)) {
+            telemetry.addData("we're in the loop", cam.getFps());
             ArrayList<AprilTagDetection> detections = pulpPipe.getDetectionsUpdate();
 
             if (detections != null) {
@@ -121,6 +122,6 @@ public class PropRecognitionTest1 extends LinearOpMode
         {
             numDetected=tagNumber;
         }
-        cam.stopStreaming();
+        //cam.stopStreaming();
     }
 }
