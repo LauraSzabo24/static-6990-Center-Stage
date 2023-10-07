@@ -6,16 +6,18 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
 
+import Camera.AprilTagDetectionPipeline;
+
 import java.util.ArrayList;
 
 
-@Autonomous//(name = "Pulp Detecotor", group= "Auto")
+@Autonomous
 public class PropRecognitionTest1 extends LinearOpMode
 {
     private AprilTagDetectionPipeline pulpPipe;
@@ -46,7 +48,7 @@ public class PropRecognitionTest1 extends LinearOpMode
     {
         initialize();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        cam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
+        cam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera"), cameraMonitorViewId);
         pulpPipe = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
 
         cam.setPipeline(pulpPipe);
@@ -70,7 +72,7 @@ public class PropRecognitionTest1 extends LinearOpMode
         telemetry.setMsTransmissionInterval(50);
 
         while (opModeIsActive() && !(tagNumber == 1) && !(tagNumber == 2) && !(tagNumber == 3) && !(tagNumber == 4)) {
-            ArrayList<AprilTagDetection> detections = AprilTagDetectionPipeline.getDetectionsUpdate();
+            ArrayList<AprilTagDetection> detections = pulpPipe.getDetectionsUpdate();
 
             if (detections != null) {
                 telemetry.addData("FPS", cam.getFps());
@@ -81,13 +83,13 @@ public class PropRecognitionTest1 extends LinearOpMode
                     numFramesWithoutDetection++;
 
                     if (numFramesWithoutDetection >= THRESHOLD_NUM_FRAMES_NO_DETECTION_BEFORE_LOW_DECIMATION) {
-                        AprilTagDetectionPipeline.setDecimation(DECIMATION_LOW);
+                        pulpPipe.setDecimation(DECIMATION_LOW);
                     }
                 } else {
                     numFramesWithoutDetection = 0;
 
                     if (detections.get(0).pose.z < THRESHOLD_HIGH_DECIMATION_RANGE_METERS) {
-                        AprilTagDetectionPipeline.setDecimation(DECIMATION_HIGH);
+                        pulpPipe.setDecimation(DECIMATION_HIGH);
                     }
 
                     for (AprilTagDetection detection : detections) {
@@ -95,10 +97,10 @@ public class PropRecognitionTest1 extends LinearOpMode
                         telemetry.addLine(String.format("Translation X: %.2f feet", detection.pose.x * FEET_PER_METER));
                         telemetry.addLine(String.format("Translation Y: %.2f feet", detection.pose.y * FEET_PER_METER));
                         telemetry.addLine(String.format("Translation Z: %.2f feet", detection.pose.z * FEET_PER_METER));
-                        telemetry.addLine(String.format("Rotation Yaw: %.2f degrees", Math.toDegrees(detection.pose.yaw)));
+                        /*telemetry.addLine(String.format("Rotation Yaw: %.2f degrees", Math.toDegrees(detection.pose.yaw)));
                         telemetry.addLine(String.format("Rotation Pitch: %.2f degrees", Math.toDegrees(detection.pose.pitch)));
                         telemetry.addLine(String.format("Rotation Roll: %.2f degrees", Math.toDegrees(detection.pose.roll)));
-
+                        */
                         //...
                         if (detection.id == 1 || detection.id == 2 || detection.id == 3) {
                             tagNumber = detection.id;

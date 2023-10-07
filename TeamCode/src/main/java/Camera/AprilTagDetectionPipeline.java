@@ -1,6 +1,5 @@
 package Camera;
 
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -11,7 +10,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Point3;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.apriltag.AprilTagDetectorJNI;
 import org.openftc.easyopencv.OpenCvPipeline;
 
