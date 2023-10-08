@@ -2,10 +2,16 @@ package Camera;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
+import android.util.Size;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -15,6 +21,7 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 import Camera.AprilTagDetectionPipeline;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 @Autonomous
@@ -39,14 +46,26 @@ public class PropRecognitionTest1 extends LinearOpMode
     private static final int THRESHOLD_NUM_FRAMES_NO_DETECTION_BEFORE_LOW_DECIMATION = 4;
     private static int tagNumber;
 
+    //TF Variables
+    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+    private TfodProcessor tfod;
+    private VisionPortal visionPortal;
+
+
     public void initialize()
     {
         tagNumber = 0;
+
+        //TF Stuff
+        initTfod();
+        telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
+        telemetry.addData(">", "Touch Play to start OpMode");
+        telemetry.update();
     }
     @Override
     public void runOpMode()
     {
-        initialize();
+        initialize();/*
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         cam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera"), cameraMonitorViewId);
         pulpPipe = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
@@ -66,11 +85,11 @@ public class PropRecognitionTest1 extends LinearOpMode
             {
                 throw new RuntimeException("cam not doing the cam" + errorCode);
             }
-        });
+        });*/
         waitForStart();
 
         telemetry.setMsTransmissionInterval(50);
-
+/*
         while (opModeIsActive() && !(tagNumber == 1) && !(tagNumber == 2) && !(tagNumber == 3) && !(tagNumber == 4)) {
             telemetry.addData("we're in the loop", cam.getFps());
             ArrayList<AprilTagDetection> detections = pulpPipe.getDetectionsUpdate();
@@ -103,6 +122,7 @@ public class PropRecognitionTest1 extends LinearOpMode
                         telemetry.addLine(String.format("Rotation Roll: %.2f degrees", Math.toDegrees(detection.pose.roll)));
                         */
                         //...
+        /*
                         if (detection.id == 1 || detection.id == 2 || detection.id == 3) {
                             tagNumber = detection.id;
                         }
@@ -121,7 +141,64 @@ public class PropRecognitionTest1 extends LinearOpMode
         while(!opModeIsActive())
         {
             numDetected=tagNumber;
-        }
+        } */
         //cam.stopStreaming();
+
+        //TF Stuff
+        if(opModeIsActive()) {
+            while(opModeIsActive()) {
+                lookHere();
+            }
+        }
+
+    }
+
+    private void lookHere()
+    {
+        telemetryTfod();
+
+        // Push telemetry to the Driver Station.
+        telemetry.update();
+
+        // Save CPU resources; can resume streaming when needed.
+        if (gamepad1.dpad_down) {
+            visionPortal.stopStreaming();
+        } else if (gamepad1.dpad_up) {
+            visionPortal.resumeStreaming();
+        }
+        // Share the CPU.
+        sleep(20);
+    }
+    private void initTfod() {
+        tfod = new TfodProcessor.Builder().build();
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+        if (USE_WEBCAM) {
+            builder.setCamera(hardwareMap.get(WebcamName.class, "camera"));
+        } else {
+            builder.setCamera(BuiltinCameraDirection.BACK);
+        }
+        builder.setCameraResolution(new Size(640, 480));
+        builder.enableCameraMonitoring(true);
+        builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+        builder.setAutoStopLiveView(false);
+
+        builder.addProcessor(tfod);
+        visionPortal = builder.build();
+
+        tfod.setMinResultConfidence(0.75f);
+    }
+    private void telemetryTfod() {
+        List<Recognition> currentRecognitions = tfod.getRecognitions();
+        telemetry.addData("# Objects Detected", currentRecognitions.size());
+        for (Recognition recognition : currentRecognitions) {
+            double x = (recognition.getLeft() + recognition.getRight()) / 2 ;
+            double y = (recognition.getTop()  + recognition.getBottom()) / 2 ;
+
+            telemetry.addData(""," ");
+            telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
+            telemetry.addData("- Position", "%.0f / %.0f", x, y);
+            telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
+        }
+        telemetry.update();
     }
 }
