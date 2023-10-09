@@ -39,6 +39,7 @@ public class PropRecognitionTest1 extends LinearOpMode
     private static final double tagsize = 0.166;
 
     private int numFramesWithoutDetection = 0;
+    private int numDetectionCycle = 0;
 
     private static final float DECIMATION_HIGH = 3;
     private static final float DECIMATION_LOW = 2;
@@ -54,8 +55,6 @@ public class PropRecognitionTest1 extends LinearOpMode
 
     public void initialize()
     {
-        tagNumber = 0;
-
         //TF Stuff
         initTfod();
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
@@ -65,7 +64,7 @@ public class PropRecognitionTest1 extends LinearOpMode
     @Override
     public void runOpMode()
     {
-        initialize();/*
+        tagNumber = 0;
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         cam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera"), cameraMonitorViewId);
         pulpPipe = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
@@ -85,11 +84,11 @@ public class PropRecognitionTest1 extends LinearOpMode
             {
                 throw new RuntimeException("cam not doing the cam" + errorCode);
             }
-        });*/
+        });
         waitForStart();
 
         telemetry.setMsTransmissionInterval(50);
-/*
+
         while (opModeIsActive() && !(tagNumber == 1) && !(tagNumber == 2) && !(tagNumber == 3) && !(tagNumber == 4)) {
             telemetry.addData("we're in the loop", cam.getFps());
             ArrayList<AprilTagDetection> detections = pulpPipe.getDetectionsUpdate();
@@ -122,9 +121,10 @@ public class PropRecognitionTest1 extends LinearOpMode
                         telemetry.addLine(String.format("Rotation Roll: %.2f degrees", Math.toDegrees(detection.pose.roll)));
                         */
                         //...
-        /*
                         if (detection.id == 1 || detection.id == 2 || detection.id == 3) {
                             tagNumber = detection.id;
+                            telemetry.addLine(String.format("\nfinished tags", tagNumber));
+                            telemetry.update();
                         }
                         //...
                     }
@@ -135,18 +135,14 @@ public class PropRecognitionTest1 extends LinearOpMode
             sleep(20);
 
         }
+        cam.stopStreaming();
 
-        double numDetected = -1;
-
-        while(!opModeIsActive())
-        {
-            numDetected=tagNumber;
-        } */
-        //cam.stopStreaming();
 
         //TF Stuff
+        initialize();
         if(opModeIsActive()) {
             while(opModeIsActive()) {
+                telemetry.addLine(String.format("\nstarted object recognition", tagNumber));
                 lookHere();
             }
         }
@@ -161,12 +157,13 @@ public class PropRecognitionTest1 extends LinearOpMode
         telemetry.update();
 
         // Save CPU resources; can resume streaming when needed.
-        if (gamepad1.dpad_down) {
+/*        if (gamepad1.dpad_down) {
             visionPortal.stopStreaming();
         } else if (gamepad1.dpad_up) {
             visionPortal.resumeStreaming();
         }
         // Share the CPU.
+ */
         sleep(20);
     }
     private void initTfod() {
@@ -185,11 +182,13 @@ public class PropRecognitionTest1 extends LinearOpMode
         builder.addProcessor(tfod);
         visionPortal = builder.build();
 
-        tfod.setMinResultConfidence(0.75f);
+        tfod.setMinResultConfidence(0.25f);
     }
     private void telemetryTfod() {
+        numDetectionCycle++;
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
+        telemetry.addData("cycle #", numDetectionCycle);
         for (Recognition recognition : currentRecognitions) {
             double x = (recognition.getLeft() + recognition.getRight()) / 2 ;
             double y = (recognition.getTop()  + recognition.getBottom()) / 2 ;
@@ -199,6 +198,7 @@ public class PropRecognitionTest1 extends LinearOpMode
             telemetry.addData("- Position", "%.0f / %.0f", x, y);
             telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
         }
+
         telemetry.update();
     }
 }
