@@ -14,7 +14,6 @@ public class MainTeleOp extends OpMode {
     private boolean confirmed;
     private String[] colors;
 
-    //INITIALIZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
     public void driverBInitialize()
     {
         output = new String[12][13]; //15
@@ -36,7 +35,6 @@ public class MainTeleOp extends OpMode {
         //color camera init
     }
 
-    //MAINNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
     @Override
     public void start()
     {
@@ -54,18 +52,15 @@ public class MainTeleOp extends OpMode {
         //Tetris Driver Trash Updating
         printAll();
         getColors();
-        updateTetris();
+        updateTetrisThing();
         telemetry.update();
     }
 
-
-
-    //TETRISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
     public void getColors()
     {
         colors = new String[] {"G", "P"}; //⬜ 🟪 🟩 🟨
     }
-    public void updateTetris()
+    public void updateTetrisThing()
     {
         //cursor movement
         if(gamepad1.dpad_left && cursorX>0)
