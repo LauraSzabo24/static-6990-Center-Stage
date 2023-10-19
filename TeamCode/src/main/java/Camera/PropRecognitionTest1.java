@@ -52,6 +52,11 @@ public class PropRecognitionTest1 extends LinearOpMode
     private TfodProcessor tfod;
     private VisionPortal visionPortal;
 
+    private static final String TFOD_MODEL_ASSET = "gomba.tflite";
+    private static final String[] LABELS = {
+            "gomba",
+    };
+
 
     public void initialize()
     {
@@ -82,7 +87,7 @@ public class PropRecognitionTest1 extends LinearOpMode
             @Override
             public void onError(int errorCode)
             {
-                throw new RuntimeException("cam not doing the cam" + errorCode);
+                throw new RuntimeException("camera not working" + errorCode);
             }
         });
         waitForStart();
@@ -167,7 +172,10 @@ public class PropRecognitionTest1 extends LinearOpMode
         sleep(20);
     }
     private void initTfod() {
-        tfod = new TfodProcessor.Builder().build();
+        tfod = new TfodProcessor.Builder()
+                .setModelAssetName(TFOD_MODEL_ASSET)
+                .setModelLabels(LABELS)
+                .build();
         VisionPortal.Builder builder = new VisionPortal.Builder();
         if (USE_WEBCAM) {
             builder.setCamera(hardwareMap.get(WebcamName.class, "camera"));
