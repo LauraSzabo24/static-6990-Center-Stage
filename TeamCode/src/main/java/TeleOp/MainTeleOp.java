@@ -21,7 +21,13 @@ public class MainTeleOp extends OpMode {
     private String[] colors;
     private String previousOutput;
 
-    //cursor movment
+    //color selection stuff
+    private boolean aPressed;
+    private boolean aReleased;
+    private boolean bPressed;
+    private boolean bReleased;
+
+    //cursor movement
     private boolean leftPressed;
     private boolean leftReleased;
     private boolean rightPressed;
@@ -30,6 +36,7 @@ public class MainTeleOp extends OpMode {
     private boolean downReleased;
     private boolean upPressed;
     private boolean upReleased;
+    private boolean boxRow;
 
     public void driverAInitialize()
     {
@@ -41,15 +48,23 @@ public class MainTeleOp extends OpMode {
     {
         output = new String[12][13]; //15
         cursorX = 1;
-        cursorY = 0;
-        cursorFlash = 100;
+        cursorY = 10;
+        cursorFlash = 50;
         firstPos = new int[]{-1,-1};
         secPos = new int[]{-1,-1};
-        colors = new String[] {"", ""};
         confirmB = false;
         previousOutput = "";
+        boxRow = true;
+        colors = new String[] {"", ""};
         makeGrid();
         printAll();
+
+        //color
+        getColors();
+        aPressed = false;
+        aReleased = false;
+        bPressed = false;
+        bReleased = false;
 
         //cursor
         leftPressed = false;
@@ -61,15 +76,22 @@ public class MainTeleOp extends OpMode {
         downPressed = false;
         downReleased = false;
     }
+    public void cameraInit()
+    {
+        //color camera stuff goes in here
+    }
+    public void pidInit()
+    {
+
+    }
     @Override
     public void init()
     {
         driverAInitialize();
         driverBInitialize();
-        //driver a init
-        //color camera init
+        cameraInit();
+        pidInit();
     }
-
     @Override
     public void start()
     {
@@ -82,32 +104,50 @@ public class MainTeleOp extends OpMode {
         //PID
 
         //Normal Driver A Controls
-        //if(!emergencyMode)
-        //{
+        if(!emergencyMode)
+        {
 
-        //}
-
+        }
         //Tetris Driver B Updating
-        //if(!emergencyMode) {
-            getColors();
+        if(!emergencyMode) {
             printAll();
             updateTetrisThing();
             telemetry.update();
-        //}
+        }
 
-        /*
-        //Pixel Placing Thing
+        //Tetris color checker (will normally run as soon as the colors empty, if inconsistent run by command from driver a)
+        if(colors[0].equals("") && colors[1].equals("") && confirmB)
+        {
+            //confirmB = false; //(normally happens after both pixels were placed)
+            getColors();
+        }
+
+        //done to here
+        //Tetris Pixel Placing Thing
         if(confirmA && confirmB && !emergencyMode)
         {
-            runPixelPlacing();
+            runPixelPlacing(firstPos, secPos);
+            confirmB = false;
+            confirmA = false;
         }
 
         //EMERGENCY MODE CONTROLS
-        //driver A turns on emergency mode with 2 buttons at the same time
+        //driver A turns on emergency mode (change to button press not hold)
+        if(gamepad2.a && gamepad2.b && gamepad2.x && gamepad2.y)
+        {
+            if(emergencyMode)            {
+                emergencyMode = false;
+            }
+            else {
+                emergencyMode = true;
+            }
+        }
         if(emergencyMode)
         {
+            telemetry.addLine(String.format("EMERGENCYYYYYYYY MODEEEEEEEEEE"));
+            telemetry.update();
             emergencyModeControls();
-        }*/
+        }
     }
     public void emergencyModeControls()
     {
@@ -115,11 +155,24 @@ public class MainTeleOp extends OpMode {
         manualOn = true;
         //Driver B - slides, claw etc
     }
-    public void runPixelPlacing()
+    public void convertX(int xCoor)
+    {
+        //converts the x coordinate on pixel board to inches|
+        // set to pose = (amount for one pixel)(xCoor)+(distance from side)
+        // make different one for box row
+    }
+    public void convertY(int yCoor)
+    {
+        //converts the y into slides value target| value=(amount for one pixel up)(yCoor)+(base amount)
+        //different for box row
+    }
+    public void runPixelPlacing(int [] target1, int [] target2)
     {
         manualOn = false;
         //turns x value of coordinate into x position
+        convertX(target1[0]);
         //turns y value of coordinate into value for slides
+        convertY(target1[1]);
         //road runner code that goes to the correct firstPos x in arc shape
         //moves slides while going
         //push pixel out
@@ -144,7 +197,7 @@ public class MainTeleOp extends OpMode {
             previousOutput = output[cursorY][cursorX];
         }
         cursorFlash--;
-        if(cursorFlash>50) {
+        if(cursorFlash>25) {
             output[cursorY][cursorX] = "◼"; //⬛ █◼
         }
         else
@@ -153,34 +206,47 @@ public class MainTeleOp extends OpMode {
         }
         if(cursorFlash<1)
         {
-            cursorFlash=100;
+            cursorFlash=50;
             previousOutput = output[cursorY][cursorX];
             output[cursorY][cursorX] = previousOutput;
         }
         cursorUpdate();
 
-/*
+
         //selection
-        if(gamepad1.a && firstPos[1]==-1 && manualOn)
+        if(aReleased && manualOn && !(colors[0].equals("")))
         {
-            firstPos = new int[] {cursorX, cursorY};
-            output[cursorY][cursorX]=colors[0];
-        }
-        else if(gamepad1.a && secPos[1]==-1)
-        {
-            secPos = new int[] {cursorX, cursorY};
-            output[cursorY][cursorX]=colors[1];
+            aPressed = false;
+            aReleased = false;
+            output[cursorY][cursorX] = colors[0];
+            if(colors[1]=="")
+            {
+                secPos = new int[]{cursorY, cursorX};
+            }
+            else{
+                firstPos = new int[]{cursorY, cursorX};
+            }
+            colors[0]=colors[1];
+            colors[1]="";
         }
 
-        //confirmation
-        if(gamepad1.b && (firstPos[1]!=-1 || secPos[1]!=-1) && manualOn)
+        //retrieval
+        if(bReleased && manualOn)
         {
+            //write retrieval code here also change how first pos and sec pos are set
+            //also use different button
+        }
+        //confirmation
+        if(bReleased && (firstPos[1]!=-1 || secPos[1]!=-1) && manualOn)
+        {
+            bPressed = false;
+            bReleased = false;
             confirmB = true;
             firstPos = new int[]{-1,-1};
             secPos = new int[]{-1,-1};
-        }*/
+        }
     }
-    public void cursorUpdate()
+    public void cursorUpdate() //WORKS
     {
         //left
         if(gamepad1.dpad_left)
@@ -215,20 +281,42 @@ public class MainTeleOp extends OpMode {
             upReleased = true;
         }
 
+        //a and b
+        if(gamepad1.a)
+        {
+            aPressed = true;
+        }
+        else if(aPressed){
+            aReleased = true;
+        }
+        //up
+        if(gamepad1.b)
+        {
+            bPressed = true;
+        }
+        else if(bPressed){
+            bReleased = true;
+        }
+
         //cursor movement
+        isBoxRow();
         if(leftReleased && cursorX>1)
         {
             leftPressed = false;
             leftReleased = false;
             output[cursorY][cursorX] = previousOutput;
-            cursorX--;
+            if(cursorX-1>1){
+                cursorX-=2;
+            }
         }
         else if(rightReleased && cursorX<12)
         {
             rightPressed = false;
             rightReleased = false;
             output[cursorY][cursorX] = previousOutput;
-            cursorX++;
+            if(cursorX+1<12){
+                cursorX+=2;
+            }
         }
         else if(downReleased && cursorY<10)
         {
@@ -236,6 +324,12 @@ public class MainTeleOp extends OpMode {
             downReleased = false;
             output[cursorY][cursorX] = previousOutput;
             cursorY++;
+            if(boxRow){
+                cursorX++;
+            }
+            else{
+                cursorX--;
+            }
         }
         else if(upReleased && cursorY>=1)
         {
@@ -243,16 +337,30 @@ public class MainTeleOp extends OpMode {
             upReleased = false;
             output[cursorY][cursorX] = previousOutput;
             cursorY--;
+            if(boxRow){
+                cursorX++;
+            }
+            else{
+                cursorX--;
+            }
+        }
+    }
+    public void isBoxRow() //WORKS
+    {
+        if(cursorY%2==0)
+        {
+            boxRow = true;
+        }
+        else{
+            boxRow = false;
         }
     }
     public void printAll()
     {
         //colors avaliable
-        telemetry.addLine(String.format("                     1      2"));
+        telemetry.addLine(String.format("                    1      2"));
         telemetry.addLine(String.format("COLORS - "+colors[0]+"      "+colors[1]));
-        telemetry.addLine(String.format(""));
 
-        //prints to here
         //2d array output
         String rowOut = "";
         for(int r=0; r<output.length; r++)
@@ -263,29 +371,46 @@ public class MainTeleOp extends OpMode {
             }
             telemetry.addData("", rowOut);
         }
-        telemetry.addLine(String.format("mitten"));
-/*
+
         //selections queue
-        telemetry.addLine(String.format("", null));
-        telemetry.addLine(String.format("          1      2", null));
-        telemetry.addLine(String.format("QUEUE - "+firstPos[0]+","+firstPos[1]+" and "+secPos[0]+secPos[1], null));
+        if(firstPos[0]!=-1 && secPos[0]!=-1)
+        {
+            telemetry.addLine(String.format("QUEUE|   "+firstPos[1]+","+firstPos[0]+" then "+secPos[1]+","+secPos[0], null));
+        }
+        else if(firstPos[0]!=-1)
+        {
+            telemetry.addLine(String.format("QUEUE|   "+firstPos[1]+","+firstPos[0]));
+        }
+        else {
+            telemetry.addLine(String.format("QUEUE|   "));
+
+        }
 
         //confirmation queue
-        if(confirmB)
+        if(confirmB && confirmA)
         {
-            telemetry.addLine(String.format("", null));
-            telemetry.addLine(String.format("CONFIRMED PLEASE WAIT", null));
+            telemetry.addLine(String.format("ROBOT RUNNING"));
+        }
+        else if(confirmB)
+        {
+            telemetry.addLine(String.format("CONFIRMED PLEASE WAIT"));
+        }
+        else if(colors[0].equals(""))
+        {
+            telemetry.addLine(String.format("NO PIXELS LOADED"));
+        }
+        else if(colors[1].equals(""))
+        {
+            telemetry.addLine(String.format("UNCONFIRMED CHANGES"));
         }
         else
         {
-            telemetry.addLine(String.format("", null));
-            telemetry.addLine(String.format("UNCONFIRMED", null));
+            telemetry.addLine(String.format("PIXELS READY TO GO"));
         }
 
-*/
         telemetry.update();
     }
-    public void makeGrid() {
+    public void makeGrid() { //WORKS
         for (int r = 0; r < output.length; r++) {
             for (int c = 0; c < output[1].length; c++) {
                 if (c != 0 && c != 14) {
