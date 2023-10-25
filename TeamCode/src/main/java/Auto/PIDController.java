@@ -7,69 +7,81 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.drive.DriveSignal;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.trajectorysequence.sequencesegment.SequenceSegment;
 
+
+@Config
+@TeleOp(name = "PID Test")
 public class PIDController extends LinearOpMode {
-    DcMotorEx FrontLeft;
-    DcMotorEx FrontRight;
-    DcMotorEx BackLeft;
-    DcMotorEx BackRight;
-    double Kp = 0;
-    double Kd = 0;
+
+    DcMotorEx motor;
 
     ElapsedTime timer = new ElapsedTime();
+
     private double lastError = 0;
+    private double integralSum = 0;
+
+    public static double Kp = 0.01;
+    public static double Kd = 0.0;
+
+    public static double targetPosition = 5000;
+
+    private final FtcDashboard dashboard = FtcDashboard.getInstance();
     @Override
     public void runOpMode() throws InterruptedException {
-        FrontLeft = hardwareMap.get(DcMotorEx.class, "FrontLeft");
-        FrontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        FrontRight = hardwareMap.get(DcMotorEx.class, "FrontRight");
-        FrontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        TelemetryPacket packet = new TelemetryPacket();
 
-        BackLeft = hardwareMap.get(DcMotorEx.class, "BackLeft");
-        BackLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        dashboard.setTelemetryTransmissionInterval(25);
+        drive = hardwareMap.get(SampleMecanumDrive.class, "motor");
 
-        BackRight = hardwareMap.get(DcMotorEx.class, "BackRight");
-        BackRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        BackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        FrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-
-//could be position
+        drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
-        while (opModeIsActive()) {
-            double power = PIDControl(1000, FrontLeft.getVelocity());
-            FrontLeft.setPower(power);
 
-            power = PIDControl(1000, FrontRight.getVelocity());
-            FrontRight.setPower(power);
+        int targetPosition = 0;
 
-            power = PIDControl(1000, BackRight.getVelocity());
-            BackRight.setPower(power);
 
-            power = PIDControl(1000, BackLeft.getVelocity());
-            BackLeft.setPower(power);
+        while(opModeIsActive()){
+            if(gamepad1.a) {
+                targetPosition = 5000;
+            }
+            if(gamepad1.b){
+                targetPosition = 0;
+            }
+                double power = returnPower(targetPosition, motor.getCurrentPosition());
+                packet.put("power", power);
+                packet.put("position", motor.getCurrentPosition());
+                packet.put("error", lastError);
+                packet.put("targetPosition", targetPosition);
+                telemetry.addData("power", power);
+                telemetry.addData("position",motor.getCurrentPosition());
+                telemetry.addData("error", lastError);
+                motor.setPower(power);
+                telemetry.update();
 
+                dashboard.sendTelemetryPacket(packet);
         }
     }
-    public double PIDControl(double reference, double state){
+
+    public double returnPower(double reference, double state){
         double error = reference - state;
-        double derivative = (error - lastError)/timer.seconds();
+        double derivative = (error-lastError)/timer.seconds();
         lastError = error;
 
         timer.reset();
 
-        double output = (error*Kp) + (derivative * Kd);
+        double output = (error* Kp) +  (derivative * Kd);
         return output;
     }
 }
