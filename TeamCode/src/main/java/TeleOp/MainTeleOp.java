@@ -1,39 +1,71 @@
 package TeleOp;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 @TeleOp
 public class MainTeleOp extends OpMode {
 
     //PID material
-
-    double Kp = 0;
-    double Kd = 0;
-
+    DcMotorEx slideMotorRight;
+    DcMotorEx slideMotorLeft;
     ElapsedTime timer = new ElapsedTime();
     private double lastError = 0;
+    private double integralSum = 0;
+    public static double Kp = 0.01;
+    public static double Kd = 0.0;
+    public static double targetPosition = 5000;
+    private final FtcDashboard dashboard = FtcDashboard.getInstance();
+    public TelemetryPacket packet;
 
-    //driver a material
+
+    //DRIVER A material
+    //toggles
+    private boolean armInHome;
+    private boolean clawInHome;
+    private boolean pushPopInHome;
+    private boolean intakeLiftInHome;
+    //other
     private boolean confirmA;
     private boolean manualOn;
     private boolean emergencyMode;
+    private Servo clawServo, armLeftServo,armRightServo, pushPopServo, intakeLiftServo;
+    DcMotorEx intakeMotor;
 
-    //emergency mode
-    private boolean a2Pressed;
-    private boolean a2Released;
-    private boolean b2Pressed;
-    private boolean b2Released;
-    private boolean x2Pressed;
-    private boolean x2Released;
-    private boolean y2Pressed;
-    private boolean y2Released;
+    //mecanum drive stuff
+    private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight;
+    private double getMax(double[] input) {
+        double max = Integer.MIN_VALUE;
+        for (double value : input) {
+            if (Math.abs(value) > max) {
+                max = Math.abs(value);
+            }
+        }
+        return max;
+    }
 
-    //driver b material
+    //button controls for DRIVER A
+    private boolean a1Pressed;
+    private boolean a1Released;
+    private boolean b1Pressed;
+    private boolean b1Released;
+    private boolean x1Pressed;
+    private boolean x1Released;
+    private boolean y1Pressed;
+    private boolean y1Released;
+
+
+
+    //DRIVER B material
     private static String[][] output;
     private int cursorX;
     private int cursorY;
@@ -44,13 +76,18 @@ public class MainTeleOp extends OpMode {
     private String[] colors;
     private String previousOutput;
 
-    //color selection stuff
-    private boolean aPressed;
-    private boolean aReleased;
-    private boolean bPressed;
-    private boolean bReleased;
+    //button controls for DRIVER B
+    private boolean a2Pressed;
+    private boolean a2Released;
+    private boolean b2Pressed;
+    private boolean b2Released;
+    private boolean x2Pressed;
+    private boolean x2Released;
+    private boolean y2Pressed;
+    private boolean y2Released;
 
-    //cursor movement
+
+    //cursor movement DRIVER B
     private boolean leftPressed;
     private boolean leftReleased;
     private boolean rightPressed;
@@ -63,22 +100,66 @@ public class MainTeleOp extends OpMode {
 
     public void driverAInitialize()
     {
-        confirmA = false;
+        //modes
         manualOn = true;
         emergencyMode = false;
+        confirmA = false;
 
-        //emergency mode
-        a2Pressed = false;
-        a2Released = false;
-        b2Pressed = false;
-        b2Released = false;
-        x2Pressed = false;
-        x2Released = false;
-        y2Pressed = false;
-        y2Released = false;
+        //emergency mode/ button controls
+        a1Pressed = false;
+        a1Released = false;
+        b1Pressed = false;
+        b1Released = false;
+        x1Pressed = false;
+        x1Released = false;
+        y1Pressed = false;
+        y1Released = false;
 
-        //motors
+        //dashboard
+        dashboard.setTelemetryTransmissionInterval(25);
 
+        //slide motors
+        /*slideMotorLeft = hardwareMap.get(DcMotorEx.class, "LeftSlide");
+        slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slideMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        slideMotorRight = hardwareMap.get(DcMotorEx.class, "RightSlide");
+        slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slideMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        slideMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);*/
+        targetPosition = 0;
+
+        //drive motors
+       /* motorFrontLeft = (DcMotorEx) hardwareMap.dcMotor.get("FL");
+        motorBackLeft = (DcMotorEx) hardwareMap.dcMotor.get("BL");
+        motorFrontRight = (DcMotorEx) hardwareMap.dcMotor.get("FR");
+        motorBackRight = (DcMotorEx) hardwareMap.dcMotor.get("BR");
+
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        motorFrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);*/
+
+        //intake outake servos
+        armInHome = true;
+        pushPopInHome = true;
+        clawInHome = true;
+        intakeLiftInHome = true;
+        /*clawServo = hardwareMap.get(Servo.class, "armRightServo");
+        armRightServo = hardwareMap.get(Servo.class, "armRightServo");
+        armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
+        pushPopServo = hardwareMap.get(Servo.class, "pushPopServo");
+        intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");*/
+
+        //intake motor
+        /*intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);*/
     }
     public void driverBInitialize()
     {
@@ -97,10 +178,16 @@ public class MainTeleOp extends OpMode {
 
         //color
         getColors();
-        aPressed = false;
-        aReleased = false;
-        bPressed = false;
-        bReleased = false;
+        a2Pressed = false;
+        a2Released = false;
+        b2Pressed = false;
+        b2Released = false;
+
+        //other button controls
+        x2Pressed = false;
+        x2Released = false;
+        y2Pressed = false;
+        y2Released = false;
 
         //cursor
         leftPressed = false;
@@ -118,15 +205,22 @@ public class MainTeleOp extends OpMode {
     }
     public void pidInit()
     {
-
+       /* SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        packet = new TelemetryPacket();
+        dashboard.setTelemetryTransmissionInterval(25);
+        drive = hardwareMap.get(SampleMecanumDrive.class, "motor");
+        drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        targetPosition = 0;*/
     }
     @Override
     public void init()
     {
+        pidInit();
         driverAInitialize();
         driverBInitialize();
         cameraInit();
-        pidInit();
     }
     @Override
     public void start()
@@ -137,25 +231,80 @@ public class MainTeleOp extends OpMode {
     @Override
     public void loop()
     {
-        //PID
+        //button update
+        updateDriverAButtons();
+
+        //EMERGENCY MODE CONTROLS
+        if(a1Released && b1Released && x1Released && y1Released)
+        {
+            b1Released = false;
+            b1Pressed = false;
+            a1Released = false;
+            a1Pressed = false;
+            x1Released = false;
+            x1Pressed = false;
+            y1Released = false;
+            y1Pressed = false;
+            if(emergencyMode)            {
+                emergencyMode = false;
+            }
+            else {
+                emergencyMode = true;
+            }
+            a2Released = false;
+            a2Pressed = false;
+        }
+        if(emergencyMode)
+        {
+            telemetry.addLine(String.format("EMERGENCYYYYYYYY MODEEEEEEEEEE"));
+            updateDriverBButtons();
+            emergencyModeControls();
+        }
+
+        //PID (FIXXXX)
+        /*double currentSlidePos = slideMotorLeft.getCurrentPosition();
+        if(gamepad2.a) {
+            targetPosition = 5000;
+        }
+        else{
+            targetPosition = currentSlidePos;
+        }
+        if(gamepad2.b){
+            targetPosition = 0;
+        }
+        else{
+            targetPosition = currentSlidePos;
+        }
+        //targetPosition = currentSlidePos; remove ifs above
+        double power = returnPower(targetPosition, currentSlidePos);
+        packet.put("power", power);
+        packet.put("position", currentSlidePos);
+        packet.put("error", lastError);
+        packet.put("targetPosition", targetPosition);
+        telemetry.addData("power", power);
+        telemetry.addData("position", currentSlidePos);
+        telemetry.addData("error", lastError);
+        slideMotorLeft.setPower(power);
+        slideMotorRight.setPower(power);
+        telemetry.update();
+
+        dashboard.sendTelemetryPacket(packet);*/
 
 
         //Normal Driver A Controls
-        updateDriverAButtons();
         if(!emergencyMode && manualOn)
         {
-            //confirmation
-            if(b2Released && !(a2Released || x2Released || y2Released))
-            {
-                b2Released = false;
-                b2Pressed = false;
-                confirmA = true;
-            }
-
             //everything else
             updateDriverAControls();
-
+            //confirmation
+            if(b1Released)
+            {
+                b1Released = false;
+                b1Pressed = false;
+                confirmA = true;
+            }
         }
+
         //Tetris Driver B Updating
         if(!emergencyMode) {
             printAll();
@@ -180,50 +329,126 @@ public class MainTeleOp extends OpMode {
             //confirmA = false;
         }
 
-        //EMERGENCY MODE CONTROLS
-        if(a2Released && b2Released && x2Released && y2Released)
-        {
-            b2Released = false;
-            b2Pressed = false;
-            a2Released = false;
-            a2Pressed = false;
-            x2Released = false;
-            x2Pressed = false;
-            y2Released = false;
-            y2Pressed = false;
-            if(emergencyMode)            {
-                emergencyMode = false;
-            }
-            else {
-                emergencyMode = true;
-            }
+        //telemetry CAN DELETE LATERRRRR
+        if(armInHome){
+            telemetry.addLine(String.format("arm in"));
         }
-        if(emergencyMode)
-        {
-            telemetry.addLine(String.format("EMERGENCYYYYYYYY MODEEEEEEEEEE"));
-            emergencyModeControls();
+        else{
+            telemetry.addLine(String.format("arm out"));
+        }
+        if(clawInHome){
+            telemetry.addLine(String.format("claws in"));
+        }
+        else{
+            telemetry.addLine(String.format("claws out"));
+        }
+        if(pushPopInHome){
+            telemetry.addLine(String.format("push pop in"));
+        }
+        else{
+            telemetry.addLine(String.format("push pop out"));
         }
 
         telemetry.update();
     }
 
     //PIDDDDDDDDDDDDDD
-    public double PIDControl(double reference, double state){
+    public double returnPower(double reference, double state){
         double error = reference - state;
-        double derivative = (error - lastError)/timer.seconds();
+        double derivative = (error-lastError)/timer.seconds();
         lastError = error;
 
         timer.reset();
 
-        double output = (error*Kp) + (derivative * Kd);
+        double output = (error* Kp) +  (derivative * Kd);
         return output;
     }
+
+
 
     //DRIVER A NORMAL CONTROLS FROM HEREEEE
     public void updateDriverAControls()
     {
+        //mecanum
+        drive();
 
+        //pivots
+        if(gamepad1.right_bumper)
+        {
+            /*motorBackLeft.setPower(0);
+            motorBackRight.setPower(0);
+            motorFrontLeft.setPower(2);//0.9
+            motorFrontRight.setPower(-2);*/
+            telemetry.addLine(String.format("pivot right"));
 
+        }
+        else if(gamepad1.left_bumper)
+        {
+            /*motorBackLeft.setPower(0);
+            motorBackRight.setPower(0);
+            motorFrontLeft.setPower(-2);
+            motorFrontRight.setPower(2);*/
+            telemetry.addLine(String.format("pivot left"));
+        }
+
+        //intake lift here
+        if(y1Released && intakeLiftInHome)
+        {
+            y1Pressed = false;
+            y1Released = false;
+            intakeLiftInHome = false;
+            //intakeLiftServo.setPosition(0.45);
+        }
+        if(y1Released && !intakeLiftInHome) {
+            y1Pressed = false;
+            y1Released = false;
+            intakeLiftInHome = true;
+            //intakeLiftServo.setPosition(0);
+        }
+
+        //intake spinner sucking vacuum cleaner thing
+        if(gamepad1.a)
+        {
+            //intakeMotor.setPower(2);
+            telemetry.addLine(String.format("powering vacuum"));
+        }
+        else{
+            //intakeMotor.setPower(0);
+            telemetry.addLine(String.format("vacuum on standby"));
+        }
+
+        //telemetry CAN DELETE LATERRRR
+        if(intakeLiftInHome){
+            telemetry.addLine(String.format("intake lifted"));
+        }
+        else{
+            telemetry.addLine(String.format("intake lowered"));
+        }
+    }
+    public void drive()
+    {
+        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+        double rx = gamepad1.right_stick_x;
+
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+        double frontLeftPower = (y + x + rx) / denominator;
+        double backLeftPower = (y - x + rx) / denominator;
+        double frontRightPower = (y - x - rx) / denominator;
+        double backRightPower = (y + x - rx) / denominator;
+
+        /*motorFrontLeft.setPower(frontLeftPower);
+        motorBackLeft.setPower(backLeftPower);
+        motorFrontRight.setPower(frontRightPower);
+        motorBackRight.setPower(backRightPower);*/
+        telemetry.addLine(String.format("setting motor powers to:"));
+        telemetry.addData("frontLeft ", frontLeftPower);
+        telemetry.addData("backLeft ", backLeftPower);
+        telemetry.addData("frontRight ", frontRightPower);
+        telemetry.addData("backRight ", backRightPower);
     }
 
 
@@ -236,28 +461,156 @@ public class MainTeleOp extends OpMode {
     //EMERGENCY MODE THINGS HEREEE
     public void emergencyModeControls()
     {
-        //Driver A - controls pretty much same as normal manual
-        manualOn = true;
-        //Driver B - slides, claw etc
+        updateDriverAControls();
+
+        //ALL DRIVER B CONTROLS HEREEEEEEEEEEEEEEEEEEEEEEEEEE
+        //int slidePos = slideMotorLeft.getCurrentPosition();
+        int slidePos = 400;
+        if(gamepad2.dpad_up && slidePos<4400 )
+        {
+            /*slideMotorLeft.setPower(2);
+            slideMotorRight.setPower(2);*/
+            targetPosition = slidePos;
+            telemetry.addLine(String.format("slide go up"));
+            slidePos+=50; //REMOVE THIS TESTING ONLY
+        }
+        if(gamepad2.dpad_down && slidePos > 50)
+        {
+            /*slideMotorLeft.setPower(-2);
+            slideMotorRight.setPower(-2);*/
+            targetPosition = slidePos;
+            telemetry.addLine(String.format("slide go down"));
+            slidePos -=50; //REMOVE THIS TESTING ONLY
+        }
+        if(!gamepad2.dpad_up && !gamepad2.dpad_down && (Math.abs(targetPosition - slidePos)<15))
+        {
+            /*slideMotorLeft.setPower(0);
+            slideMotorRight.setPower(0);*/
+            telemetry.addLine(String.format("slide standby"));
+        }
+        if(gamepad2.dpad_left) //no clue what this is
+        {
+            targetPosition = 0;
+            telemetry.addLine(String.format("slide full down"));
+            slidePos = 0; //REMOVE THIS TESTING ONLY
+        }
+        //double power = returnPower(targetPosition, slideMotorLeft.getCurrentPosition());
+        double power = -55; //REMOVE JUST FOR TESTING
+        //telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
+        //telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
+        telemetry.addData("targetPosition: ", targetPosition);
+        telemetry.addData("power: ", power);
+
+
+        /*slideMotorLeft.setPower(power);
+        slideMotorRight.setPower(power);*/
+
+        //flipping thing
+        if(y2Released && armInHome)
+        {
+            y2Released = false;
+            y2Pressed = false;
+            armInHome = false;
+            /*armLeftServo.setPosition(0.5);
+            armRightServo.setPosition(0.5);*/
+        }
+        else if(y2Released) {
+            y2Released = false;
+            y2Pressed = false;
+            armInHome = true;
+            /*armLeftServo.setPosition(0);
+            armRightServo.setPosition(0);*/
+        }
+
+        //push pop
+        if(x2Released && pushPopInHome)
+        {
+            x2Released = false;
+            x2Pressed = false;
+            pushPopInHome = false;
+            //pushPopServo.setPosition(0.5);
+        } else if (x2Released)
+        {
+            x2Released = false;
+            x2Pressed = false;
+            pushPopInHome = true;
+            //pushPopServo.setPosition(0);
+        }
+
+        //claw servo
+        if(a2Released && clawInHome)
+        {
+            a2Released = false;
+            a2Pressed = false;
+            clawInHome = false;
+            //clawServo.setPosition(0.5);
+        } else if (a2Released)
+        {
+            a2Released = false;
+            a2Pressed = false;
+            clawInHome = true;
+            //clawServo.setPosition(0);
+        }
+
+        //telemetry CAN DELETE LATERRRRR
+        /*if(armInHome){
+            telemetry.addLine(String.format("arm in"));
+        }
+        else{
+            telemetry.addLine(String.format("arm out"));
+        }
+        if(clawInHome){
+            telemetry.addLine(String.format("claws in"));
+        }
+        else{
+            telemetry.addLine(String.format("claws out"));
+        }
+        if(pushPopInHome){
+            telemetry.addLine(String.format("push pop in"));
+        }
+        else{
+            telemetry.addLine(String.format("push pop out"));
+        }*/
     }
+
+    //BUTTON UPDATES
     public void updateDriverAButtons()
     {
         //a
-        if(gamepad2.a)
+        if(gamepad1.a)
         {
-            a2Pressed = true;
+            a1Pressed = true;
         }
-        else if(a2Pressed){
-            a2Released = true;
+        else if(a1Pressed){
+            a1Released = true;
         }
         //b
-        if(gamepad2.b)
+        if(gamepad1.b)
         {
-            b2Pressed = true;
+            b1Pressed = true;
         }
-        else if(b2Pressed){
-            b2Released = true;
+        else if(b1Pressed){
+            b1Released = true;
         }
+        //x
+        if(gamepad1.x)
+        {
+            x1Pressed = true;
+        }
+        else if(x1Pressed){
+            x1Released = true;
+        }
+        //y
+        if(gamepad1.y)
+        {
+            y1Pressed = true;
+        }
+        else if(y1Pressed){
+            y1Released = true;
+        }
+    }
+    public void updateDriverBButtons()
+    {
         //x
         if(gamepad2.x)
         {
@@ -274,6 +627,14 @@ public class MainTeleOp extends OpMode {
         else if(y2Pressed){
             y2Released = true;
         }
+        //a DELETE IN BAD CASE
+        if(gamepad2.a)
+        {
+            a2Pressed = true;
+        }
+        else if(a2Pressed){
+            a2Released = true;
+        }
     }
 
 
@@ -282,34 +643,37 @@ public class MainTeleOp extends OpMode {
 
 
     //ALL TETRIS TRASH DOWN FROM HERE
-    public int xCoorSimplify(int xCoor) //doesn't work
+    public int xCoorSimplify(int xCoor, int yCoor) //doesn't work
     {
         //remove spaces from x coor
-        int newX = -1;
-        if(boxRow)
+        int newX = 0;
+        for(int x = 0; x<output[0].length; x++)
         {
-            return (xCoor-1)%2;
+            if(!output[yCoor][x].equals("   ") && !output[yCoor][x].equals("_."))
+            {
+                newX+=1;
+            }
         }
-        return (xCoor-2)%2;
+        return newX;
     }
-    public double convertX(int xCoor) //doesn't work
+    public double convertX(int xCoor, int yCoor) //doesn't work
     {
         telemetry.addLine(String.format("Old x coor" + xCoor));
-        xCoor = xCoorSimplify(xCoor);
+        xCoor = xCoorSimplify(xCoor, yCoor);
         telemetry.addLine(String.format("New x coor" + xCoor));
         if(boxRow)
         {
-            return 4.75+(3*xCoor*0.5);
+            return 0.3125+(3*xCoor*0.5);
             //return distanceToFirstTopPixelFromScrew+(pixelWidth*xCoor*0.5);
         }
         else {
-            return 3.25+(3*xCoor*0.5);
+            return 1.8125+(3*xCoor*0.5);
             //return distanceToFirstPixel+(pixelWidth*xCoor*0.5);
         }
     }
     public double convertY(int yCoor) //seems to work
     {
-        double inches = 5.75;
+        double inches = 10.5;
         for(int x=10; x>=yCoor; x--)
         {
             if(x%2==1)
@@ -332,7 +696,7 @@ public class MainTeleOp extends OpMode {
         if(target1[0]!=-1) {
             telemetry.addLine(String.format("x normal " + target1[1]));
             telemetry.addLine(String.format("y normal " + target1[0]));
-            position1[0] = convertX(target1[1]);
+            position1[0] = convertX(target1[1], target1[0]);
             position1[1] = convertY(target1[0]);
 
             telemetry.addLine(String.format("x in inches " + position1[0]));
@@ -344,7 +708,7 @@ public class MainTeleOp extends OpMode {
             if(target2[0]!=-1) {
                 telemetry.addLine(String.format("x normal " + target2[1]));
                 telemetry.addLine(String.format("y normal " + target2[0]));
-                position2[0] = convertX(target2[1]);
+                position2[0] = convertX(target2[1], target2[0]);
                 position2[1] = convertY(target2[0]);
                 telemetry.addLine(String.format("x in inches " + position2[0]));
                 telemetry.addLine(String.format("y in inches " + position2[1]));
@@ -352,7 +716,7 @@ public class MainTeleOp extends OpMode {
         }
 
         //put early end / overriding in here
-        manualOn = true;
+        //manualOn = true;
     }
 
     public void getColors()
@@ -384,10 +748,10 @@ public class MainTeleOp extends OpMode {
 
 
         //selection
-        if(aReleased && manualOn && !(colors[0].equals("")))
+        if(a2Released && manualOn && !(colors[0].equals("")))
         {
-            aPressed = false;
-            aReleased = false;
+            a2Pressed = false;
+            a2Released = false;
             output[cursorY][cursorX] = colors[0];
             if(colors[1]=="")
             {
@@ -403,17 +767,17 @@ public class MainTeleOp extends OpMode {
         //retrieval???? necessary???
 
         //confirmation
-        if(bReleased && (firstPos[1]!=-1 || secPos[1]!=-1) && manualOn)
+        if(b2Released && (firstPos[1]!=-1 || secPos[1]!=-1) && manualOn)
         {
-            bPressed = false;
-            bReleased = false;
+            b2Pressed = false;
+            b2Released = false;
             confirmB = true;
         }
     }
     public void cursorUpdate() //WORKS
     {
         //left
-        if(gamepad1.dpad_left)
+        if(gamepad2.dpad_left)
         {
             leftPressed = true;
         }
@@ -421,7 +785,7 @@ public class MainTeleOp extends OpMode {
             leftReleased = true;
         }
         //right
-        if(gamepad1.dpad_right && cursorX<12)
+        if(gamepad2.dpad_right && cursorX<12)
         {
             rightPressed = true;
         }
@@ -429,7 +793,7 @@ public class MainTeleOp extends OpMode {
             rightReleased = true;
         }
         //down
-        if(gamepad1.dpad_down && cursorY<10)
+        if(gamepad2.dpad_down && cursorY<10)
         {
             downPressed = true;
         }
@@ -437,7 +801,7 @@ public class MainTeleOp extends OpMode {
             downReleased = true;
         }
         //up
-        if(gamepad1.dpad_up && cursorY>=1)
+        if(gamepad2.dpad_up && cursorY>=1)
         {
             upPressed = true;
         }
@@ -446,20 +810,20 @@ public class MainTeleOp extends OpMode {
         }
 
         //a and b
-        if(gamepad1.a)
+        if(gamepad2.a)
         {
-            aPressed = true;
+            a2Pressed = true;
         }
-        else if(aPressed){
-            aReleased = true;
+        else if(a2Pressed){
+            a2Released = true;
         }
         //up
-        if(gamepad1.b)
+        if(gamepad2.b)
         {
-            bPressed = true;
+            b2Pressed = true;
         }
-        else if(bPressed){
-            bReleased = true;
+        else if(b2Pressed){
+            b2Released = true;
         }
 
         //cursor movement
