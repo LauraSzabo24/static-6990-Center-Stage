@@ -21,7 +21,8 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.sequencesegment.Sequenc
 @TeleOp(name = "PID Test")
 public class PIDController extends LinearOpMode {
 
-    DcMotorEx motor;
+    DcMotorEx motor1;
+    DcMotorEx motor2;
 
     ElapsedTime timer = new ElapsedTime();
 
@@ -36,17 +37,21 @@ public class PIDController extends LinearOpMode {
     private final FtcDashboard dashboard = FtcDashboard.getInstance();
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+
 
         TelemetryPacket packet = new TelemetryPacket();
 
         dashboard.setTelemetryTransmissionInterval(25);
-        drive = hardwareMap.get(SampleMecanumDrive.class, "motor");
+        motor1 = hardwareMap.get(DcMotorEx.class, "slide1");
+        motor2 = hardwareMap.get(DcMotorEx.class, "slide2");
 
-        drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
 
         int targetPosition = 0;
@@ -59,15 +64,17 @@ public class PIDController extends LinearOpMode {
             if(gamepad1.b){
                 targetPosition = 0;
             }
-                double power = returnPower(targetPosition, motor.getCurrentPosition());
+                double power = returnPower(targetPosition, motor1.getCurrentPosition());
                 packet.put("power", power);
-                packet.put("position", motor.getCurrentPosition());
+                packet.put("position", motor1.getCurrentPosition());
                 packet.put("error", lastError);
                 packet.put("targetPosition", targetPosition);
                 telemetry.addData("power", power);
-                telemetry.addData("position",motor.getCurrentPosition());
+                telemetry.addData("position",motor1.getCurrentPosition());
                 telemetry.addData("error", lastError);
-                motor.setPower(power);
+
+                motor1.setPower(power);
+                motor2.setPower(power);
                 telemetry.update();
 
                 dashboard.sendTelemetryPacket(packet);

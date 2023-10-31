@@ -15,68 +15,118 @@ public class MeepMeepField {
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .followTrajectorySequence(drive ->
-                        drive.trajectorySequenceBuilder(new Pose2d(-36/*12*/, /*58*/-60, Math.toRadians(/*-90*/90)))
+                        drive.trajectorySequenceBuilder(new Pose2d(-36/*12*/, 58/*-60*/, Math.toRadians(/*90*/-90)))
                                 //far blue through middle
-                                /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(180)))
-                                .forward(24)
-                                .splineToLinearHeading(new Pose2d(-36,10,Math.toRadians(0)),  Math.toRadians(0))
-                                .forward(48)
-                                .splineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)),  Math.toRadians(90))
-                                .splineToLinearHeading(new Pose2d(12,10,Math.toRadians(180)),  Math.toRadians(180))
-                                .forward(48)
-                                .splineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)),  Math.toRadians(0))
+
+                                //tape #1
+                                    /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(0)))
+                                    .lineToLinearHeading(new Pose2d(-60, 34, Math.toRadians(180)))*/
+                                //tape #2
+                                    /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(-90)))
+                                    .lineToLinearHeading(new Pose2d(-60, 34, Math.toRadians(180)))*/
+                                //tape #3
+                                    /*.lineToLinearHeading(new Pose2d(-60, 58, Math.toRadians(0)))
+                                    .lineToLinearHeading(new Pose2d(-60, 34))
+                                    .turn(Math.toRadians(180))*/
+
+                                /*.lineToLinearHeading(new Pose2d(-60,10,Math.toRadians(0)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
+                                .lineToLinearHeading(new Pose2d(36,10,Math.toRadians(180)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
+
+                                .lineToLinearHeading(new Pose2d(-60,10,Math.toRadians(0)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
+                                .lineToLinearHeading(new Pose2d(36,10,Math.toRadians(180)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
                                 .build()*/
 
                                 //far blue through side
-                                /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(180)))
-                                .forward(24)
-                                .splineToLinearHeading(new Pose2d(-36,10,Math.toRadians(0)),  Math.toRadians(0))
-                                .forward(48)
-                                .splineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)),  Math.toRadians(90))
-                                .splineToLinearHeading(new Pose2d(12,10,Math.toRadians(180)),  Math.toRadians(180))
-                                .forward(48)
-                                .splineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)),  Math.toRadians(0))
-                                .build()*/
+                                //tape #1
+                                    /*.lineToLinearHeading(new Pose2d(-60, 58, Math.toRadians(0)))
+                                    .lineToLinearHeading(new Pose2d(-60, 34))
+                                    .turn(Math.toRadians(180))*/
+                                //tape #2
+                                    /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(-90)))
+                                    .lineToLinearHeading(new Pose2d(-60, 34, Math.toRadians(180)))*/
+                                //tape #3
+                                    /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(0)))
+                                    .lineToLinearHeading(new Pose2d(-60, 34, Math.toRadians(180)))*/
+                                .lineToLinearHeading(new Pose2d(-60,58,Math.toRadians(0)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
+                                .lineToLinearHeading(new Pose2d(36,58,Math.toRadians(180)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
+
+                                .lineToLinearHeading(new Pose2d(-60,58,Math.toRadians(0)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
+                                .lineToLinearHeading(new Pose2d(36,58,Math.toRadians(180)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
+                                .build()
 
 
                                 //close blue down middle
-                                /*.lineToLinearHeading(new Pose2d(12, 34, Math.toRadians(0)))
-                                .forward(24)
-                                .splineToLinearHeading(new Pose2d(12,10,Math.toRadians(180)),  Math.toRadians(180))
-                                .forward(72)
-                                .lineToLinearHeading(new Pose2d(12, 10, Math.toRadians(0)))
-                                .splineToLinearHeading(new Pose2d(36, 34,Math.toRadians(0)),  Math.toRadians(180))
-                                .splineToLinearHeading(new Pose2d(12,10,Math.toRadians(180)),  Math.toRadians(180))
-                                .forward(72)
-                                .lineToLinearHeading(new Pose2d(12, 10, Math.toRadians(0)))
-                                .splineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)),  Math.toRadians(180))
+                                //tape #1
+                                    /*.lineToLinearHeading(new Pose2d(12, 34, Math.toRadians(180)))
+                                    .lineToLinearHeading(new Pose2d(36, 34, Math.toRadians(0)))*/
+                                //tape #2
+                                    /*.lineToLinearHeading(new Pose2d(12, 34, Math.toRadians(-90)))
+                                    .lineToLinearHeading(new Pose2d(36, 34, Math.toRadians(0)))*/
+                                //tape #3
+                                    /*.lineToLinearHeading(new Pose2d(36, 58, Math.toRadians(180)))
+                                    .lineToLinearHeading(new Pose2d(36, 34,Math.toRadians(180)))
+                                .turn(Math.toRadians(180))*/
+
+                                /*.lineToLinearHeading(new Pose2d(36,10,Math.toRadians(180)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(36, 10, Math.toRadians(0)))
+                                .lineToLinearHeading(new Pose2d(36, 34,Math.toRadians(0)))
+
+                                .lineToLinearHeading(new Pose2d(36,10,Math.toRadians(180)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(36, 10, Math.toRadians(0)))
+                                .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
                                 .build()*/
 
                                 //close blue down side
-                                /*.lineToLinearHeading(new Pose2d(12, 34, Math.toRadians(0)))
-                                .forward(24)
-                                .splineToLinearHeading(new Pose2d(12,58,Math.toRadians(180)),  Math.toRadians(180))
-                                .forward(48)
-                                .splineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)),  Math.toRadians(180))
+                                //tape #1
+                                    /*.lineToLinearHeading(new Pose2d(12, 34, Math.toRadians(180)))
+                                    .lineToLinearHeading(new Pose2d(36, 34, Math.toRadians(0)))*/
+                                //tape #2
+                                    /*.lineToLinearHeading(new Pose2d(12, 34, Math.toRadians(-90)))
+                                    .lineToLinearHeading(new Pose2d(36, 34, Math.toRadians(0)))*/
+                                //tape #3
+                                    /*.lineToLinearHeading(new Pose2d(36, 58, Math.toRadians(180)))
+                                    .lineToLinearHeading(new Pose2d(36, 34,Math.toRadians(180)))
+                                    .turn(Math.toRadians(180))*/
+                                /*.lineToLinearHeading(new Pose2d(36,58,Math.toRadians(180)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
 
-                                .splineToLinearHeading(new Pose2d(-36,58,Math.toRadians(0)),  Math.toRadians(180))
-                                .forward(48)
-                                .splineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)),  Math.toRadians(180))
+                                .lineToLinearHeading(new Pose2d(-60,58,Math.toRadians(0)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
 
-                                .splineToLinearHeading(new Pose2d(12,58,Math.toRadians(180)),  Math.toRadians(180))
-                                .forward(48)
-                                .splineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)),  Math.toRadians(180))
+                                .lineToLinearHeading(new Pose2d(36,58,Math.toRadians(180)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
 
-                                .splineToLinearHeading(new Pose2d(-36,58,Math.toRadians(0)),  Math.toRadians(180))
-                                .forward(48)
-                                .splineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)),  Math.toRadians(180))
+                                .lineToLinearHeading(new Pose2d(-60,58,Math.toRadians(0)))
+                                .forward(96)
+                                .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
                                 .build()*/
 
 
 
 
                                 //far red through middle
-                                .lineToLinearHeading(new Pose2d(-36, -36, Math.toRadians(180)))
+                                /*.lineToLinearHeading(new Pose2d(-36, -36, Math.toRadians(180)))
                                 .forward(24)
 
                                 .splineToLinearHeading(new Pose2d(-36,-12,Math.toRadians(0)),  Math.toRadians(0))
@@ -92,7 +142,7 @@ public class MeepMeepField {
                                 .splineToLinearHeading(new Pose2d(12,-12,Math.toRadians(180)),  Math.toRadians(180))
                                 .forward(48)
                                 .splineToLinearHeading(new Pose2d(-60,-36,Math.toRadians(180)),  Math.toRadians(0))
-                                .build()
+                                .build()*/
 
                                 //far red through side
                                 /*.lineToLinearHeading(new Pose2d(-36, -36, Math.toRadians(180)))
