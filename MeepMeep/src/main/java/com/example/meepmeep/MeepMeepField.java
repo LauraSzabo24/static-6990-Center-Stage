@@ -15,23 +15,27 @@ public class MeepMeepField {
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .followTrajectorySequence(drive ->
-                        drive.trajectorySequenceBuilder(new Pose2d(/*-36*/12, /*58*/-60, Math.toRadians(/*-90*/90)))
+                        drive.trajectorySequenceBuilder(new Pose2d(-36/*12*/, 58/*-60*/, Math.toRadians(/*90*/-90)))
                                 //far blue through middle
 
                                 //tape #1
-                                    /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(0)))
-                                    .lineToLinearHeading(new Pose2d(-60, 34, Math.toRadians(180)))*/
+                                    /*.lineToLinearHeading(new Pose2d(-36,34,Math.toRadians(180)))
+                                    //place pixel on tape
+                                    .lineToLinearHeading(new Pose2d(-36,10,Math.toRadians(0)))
+                                    .forward(72)*/
                                 //tape #2
-                                    /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(-90)))
-                                    .lineToLinearHeading(new Pose2d(-60, 34, Math.toRadians(180)))*/
+                                    /*.lineToLinearHeading(new Pose2d(-36,34,Math.toRadians(270)))
+                                    //place pixel on tape
+                                    .lineToLinearHeading(new Pose2d(-60,34, Math.toRadians(270)))
+                                    .lineToLinearHeading(new Pose2d(-60,10))
+                                    .forward(96)*/
                                 //tape #3
-                                    /*.lineToLinearHeading(new Pose2d(-60, 58, Math.toRadians(0)))
-                                    .lineToLinearHeading(new Pose2d(-60, 34))
-                                    .turn(Math.toRadians(180))*/
+                                    /*.lineToLinearHeading(new Pose2d(-36,34,Math.toRadians(0)))
+                                    //place pixel on tape
+                                    .lineToLinearHeading(new Pose2d(-36,10,Math.toRadians(0)))
+                                    .forward(72)*/
 
-                                /*.lineToLinearHeading(new Pose2d(-60,10,Math.toRadians(0)))
-                                .forward(96)
-                                .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
+                                /*.lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
                                 .lineToLinearHeading(new Pose2d(36,10,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
@@ -44,20 +48,26 @@ public class MeepMeepField {
                                 .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
                                 .build()*/
 
+
+
                                 //far blue through side
                                 //tape #1
-                                    /*.lineToLinearHeading(new Pose2d(-60, 58, Math.toRadians(0)))
-                                    .lineToLinearHeading(new Pose2d(-60, 34))
-                                    .turn(Math.toRadians(180))*/
+                                    .lineToLinearHeading(new Pose2d(-36,34,Math.toRadians(180)))
+                                    //place pixel on tape
                                 //tape #2
-                                    /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(-90)))
-                                    .lineToLinearHeading(new Pose2d(-60, 34, Math.toRadians(180)))*/
+                                    //.lineToLinearHeading(new Pose2d(-36,34,Math.toRadians(270)))
+                                    //place pixel on tape
                                 //tape #3
-                                    /*.lineToLinearHeading(new Pose2d(-36, 34, Math.toRadians(0)))
-                                    .lineToLinearHeading(new Pose2d(-60, 34, Math.toRadians(180)))*/
-                                /*.lineToLinearHeading(new Pose2d(-60,58,Math.toRadians(0)))
-                                .forward(96)
+                                    //.lineToLinearHeading(new Pose2d(-36,34,Math.toRadians(0)))
+                                    //place pixel on tape
+
+                                //pick up 2 white pixels
+
+                                .lineToLinearHeading(new Pose2d(-36,58,Math.toRadians(0)))
+                                .forward(72)
                                 .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
+                                //place preloaded pixel on board
+
                                 .lineToLinearHeading(new Pose2d(36,58,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
@@ -68,7 +78,8 @@ public class MeepMeepField {
                                 .lineToLinearHeading(new Pose2d(36,58,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
-                                .build()*/
+                                .build()
+
 
 
                                 //close blue down middle
@@ -93,6 +104,8 @@ public class MeepMeepField {
                                 .lineToLinearHeading(new Pose2d(36, 10, Math.toRadians(0)))
                                 .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
                                 .build()*/
+
+
 
                                 //close blue down side
                                 //tape #1
@@ -126,22 +139,31 @@ public class MeepMeepField {
 
 
 
+
+
+
+
+
                                 //far red through middle
 
                                 //tape #1
-                                    /*.lineToLinearHeading(new Pose2d(-60, -60, Math.toRadians(0)))
-                                    .lineToLinearHeading(new Pose2d(-60, -36))
-                                    .turn(Math.toRadians(180))*/
+                                    /*.lineToLinearHeading(new Pose2d(-36,-36,Math.toRadians(180)))
+                                    //place pixel on tape
+                                    .lineToLinearHeading(new Pose2d(-36,-12,Math.toRadians(0)))
+                                    .forward(72)*/
                                 //tape #2
-                                    /*.lineToLinearHeading(new Pose2d(-36, -36, Math.toRadians(90)))
-                                    .lineToLinearHeading(new Pose2d(-60, -36, Math.toRadians(180)))*/
+                                    /*.lineToLinearHeading(new Pose2d(-36,-36,Math.toRadians(90)))
+                                    //place pixel on tape
+                                    .lineToLinearHeading(new Pose2d(-60,-36, Math.toRadians(90)))
+                                    .lineToLinearHeading(new Pose2d(-60,-12))
+                                    .forward(96)*/
                                 //tape #3
-                                    /*.lineToLinearHeading(new Pose2d(-36, -36, Math.toRadians(0)))
-                                    .lineToLinearHeading(new Pose2d(-60, -36, Math.toRadians(180)))*/
+                                    /*.lineToLinearHeading(new Pose2d(-36,-36,Math.toRadians(0)))
+                                    //place pixel on tape
+                                    .lineToLinearHeading(new Pose2d(-36,-12,Math.toRadians(0)))
+                                    .forward(72)*/
 
-                                /*.lineToLinearHeading(new Pose2d(-60,-12,Math.toRadians(0)))
-                                .forward(96)
-                                .lineToLinearHeading(new Pose2d(36,-36,Math.toRadians(0)))
+                                /*.lineToLinearHeading(new Pose2d(36,-36,Math.toRadians(0)))
                                 .lineToLinearHeading(new Pose2d(36,-12,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,-36,Math.toRadians(180)))
@@ -155,32 +177,41 @@ public class MeepMeepField {
                                 .build()*/
 
 
+
                                 //far red through side
                                 //tape #1
-                                    /*.lineToLinearHeading(new Pose2d(-60, -60, Math.toRadians(0)))
-                                    .lineToLinearHeading(new Pose2d(-60, -36))
-                                    .turn(Math.toRadians(180))*/
+                                    //.lineToLinearHeading(new Pose2d(-36,-36,Math.toRadians(180)))
+                                    //place pixel on tape
                                 //tape #2
-                                    /*.lineToLinearHeading(new Pose2d(-36, -36, Math.toRadians(90)))
-                                    .lineToLinearHeading(new Pose2d(-60, -36, Math.toRadians(180)))*/
+                                    //.lineToLinearHeading(new Pose2d(-36,-36,Math.toRadians(90)))
+                                    //place pixel on tape
                                 //tape #3
-                                    /*.lineToLinearHeading(new Pose2d(-36, -36, Math.toRadians(0)))
-                                    .lineToLinearHeading(new Pose2d(-60, -36, Math.toRadians(180)))*/
+                                    //.lineToLinearHeading(new Pose2d(-36,-36,Math.toRadians(0)))
+                                    //place pixel on tape
 
-                                /*.lineToLinearHeading(new Pose2d(-60,-60,Math.toRadians(0)))
-                                .forward(96)
+                                //pick up 2 white pixels
+
+                                /*.lineToLinearHeading(new Pose2d(-36,-60,Math.toRadians(0)))
+                                .forward(72)
                                 .lineToLinearHeading(new Pose2d(36,-36,Math.toRadians(0)))
+                                //place preloaded pixel on board
+
                                 .lineToLinearHeading(new Pose2d(36,-60,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,-36,Math.toRadians(180)))
+                                //pick up 2 white pixels
 
                                 .lineToLinearHeading(new Pose2d(-60,-60,Math.toRadians(0)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(36,-36,Math.toRadians(0)))
+                                //place white pixels on board
+
                                 .lineToLinearHeading(new Pose2d(36,-60,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,-36,Math.toRadians(180)))
+                                //pick up 2 white pixels
                                 .build()*/
+
 
 
                                 //close red down middle
@@ -218,6 +249,7 @@ public class MeepMeepField {
                                 .build()*/
 
 
+
                                 //close red down side
                                 //tape #1
                                     /*.lineToLinearHeading(new Pose2d(12, -36, Math.toRadians(180)))
@@ -228,12 +260,12 @@ public class MeepMeepField {
                                     .lineToLinearHeading(new Pose2d(36, -36, Math.toRadians(0)))*/
                                     //place pixel on tape
                                 //tape #3
-                                    .lineToLinearHeading(new Pose2d(36, -60, Math.toRadians(180)))
+                                    /*.lineToLinearHeading(new Pose2d(36, -60, Math.toRadians(180)))
                                     .lineToLinearHeading(new Pose2d(36, -36,Math.toRadians(180)))
                                     //place pixel on tape
-                                    .turn(Math.toRadians(180))
+                                    .turn(Math.toRadians(180))*/
 
-                                .lineToLinearHeading(new Pose2d(36,-60,Math.toRadians(180)))
+                                /*.lineToLinearHeading(new Pose2d(36,-60,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,-36,Math.toRadians(180)))
                                 //pick up 2 white pixels
@@ -252,7 +284,7 @@ public class MeepMeepField {
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(36,-36,Math.toRadians(0)))
                                 //place white pixels on board
-                                .build()
+                                .build()*/
 
 
 
