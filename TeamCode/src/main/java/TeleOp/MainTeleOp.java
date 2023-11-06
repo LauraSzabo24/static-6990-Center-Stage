@@ -62,11 +62,15 @@ public class MainTeleOp extends OpMode {
     private boolean x1Released;
     private boolean y1Pressed;
     private boolean y1Released;
+    private boolean leftBumperReleased;
+    private boolean leftBumperPressed;
+    private boolean rightBumperReleased;
+    private boolean rightBumperPressed;
 
 
 
     //DRIVER B material
-    private static String[][] output;
+    private static String[][] outputArray;
     private int cursorX;
     private int cursorY;
     private static int cursorFlash;
@@ -114,6 +118,10 @@ public class MainTeleOp extends OpMode {
         x1Released = false;
         y1Pressed = false;
         y1Released = false;
+        rightBumperPressed = false;
+        rightBumperReleased = false;
+        leftBumperPressed = false;
+        leftBumperReleased = false;
 
         //dashboard
         dashboard.setTelemetryTransmissionInterval(25);
@@ -163,7 +171,7 @@ public class MainTeleOp extends OpMode {
     }
     public void driverBInitialize()
     {
-        output = new String[12][13]; //15
+        outputArray = new String[12][13]; //original: 12 13 // new: 12 14
         cursorX = 1;
         cursorY = 10;
         cursorFlash = 50;
@@ -235,16 +243,20 @@ public class MainTeleOp extends OpMode {
         updateDriverAButtons();
 
         //EMERGENCY MODE CONTROLS
-        if(a1Released && b1Released && x1Released && y1Released)
+        if(leftBumperReleased && rightBumperReleased && (gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_down))
         {
-            b1Released = false;
+            leftBumperReleased = false;
+            leftBumperPressed = false;
+            rightBumperReleased = false;
+            rightBumperPressed = false;
+            /*b1Released = false;
             b1Pressed = false;
             a1Released = false;
             a1Pressed = false;
             x1Released = false;
             x1Pressed = false;
             y1Released = false;
-            y1Pressed = false;
+            y1Pressed = false;*/
             if(emergencyMode)            {
                 emergencyMode = false;
             }
@@ -465,7 +477,7 @@ public class MainTeleOp extends OpMode {
 
         //ALL DRIVER B CONTROLS HEREEEEEEEEEEEEEEEEEEEEEEEEEE
         //int slidePos = slideMotorLeft.getCurrentPosition();
-        int slidePos = 400;
+        int slidePos = 400; //DONT USE SLIDE POS FOR TARGET USE CURRENT
         if(gamepad2.dpad_up && slidePos<4400 )
         {
             /*slideMotorLeft.setPower(2);
@@ -608,6 +620,22 @@ public class MainTeleOp extends OpMode {
         else if(y1Pressed){
             y1Released = true;
         }
+        //right bumper
+        if(gamepad1.right_trigger>0.8)
+        {
+            rightBumperPressed = true;
+        }
+        else if(rightBumperPressed){
+            rightBumperReleased = true;
+        }
+        //left bumper
+        if(gamepad1.left_trigger>0.8)
+        {
+            leftBumperPressed = true;
+        }
+        else if(leftBumperPressed){
+            leftBumperReleased = true;
+        }
     }
     public void updateDriverBButtons()
     {
@@ -627,7 +655,7 @@ public class MainTeleOp extends OpMode {
         else if(y2Pressed){
             y2Released = true;
         }
-        //a DELETE IN BAD CASE
+        //a
         if(gamepad2.a)
         {
             a2Pressed = true;
@@ -647,9 +675,9 @@ public class MainTeleOp extends OpMode {
     {
         //remove spaces from x coor
         int newX = 0;
-        for(int x = 0; x<output[0].length; x++)
+        for(int x = 0; x<outputArray[0].length; x++)
         {
-            if(!output[yCoor][x].equals("   ") && !output[yCoor][x].equals("_."))
+            if(!outputArray[yCoor][x].equals("   ") && !outputArray[yCoor][x].equals("_."))
             {
                 newX+=1;
             }
@@ -726,23 +754,23 @@ public class MainTeleOp extends OpMode {
     public void updateTetrisThing()
     {
         //cursor flashing
-        if(output[cursorY][cursorX]!="◼")
+        if(outputArray[cursorY][cursorX]!="◼")
         {
-            previousOutput = output[cursorY][cursorX];
+            previousOutput = outputArray[cursorY][cursorX];
         }
         cursorFlash--;
         if(cursorFlash>25) {
-            output[cursorY][cursorX] = "◼"; //⬛ █◼
+            outputArray[cursorY][cursorX] = "◼"; //⬛ █◼
         }
         else
         {
-            output[cursorY][cursorX] = previousOutput;
+            outputArray[cursorY][cursorX] = previousOutput;
         }
         if(cursorFlash<1)
         {
             cursorFlash=50;
-            previousOutput = output[cursorY][cursorX];
-            output[cursorY][cursorX] = previousOutput;
+            previousOutput = outputArray[cursorY][cursorX];
+            outputArray[cursorY][cursorX] = previousOutput;
         }
         cursorUpdate();
 
@@ -752,7 +780,7 @@ public class MainTeleOp extends OpMode {
         {
             a2Pressed = false;
             a2Released = false;
-            output[cursorY][cursorX] = colors[0];
+            outputArray[cursorY][cursorX] = colors[0];
             if(colors[1]=="")
             {
                 secPos = new int[]{cursorY, cursorX};
@@ -832,7 +860,7 @@ public class MainTeleOp extends OpMode {
         {
             leftPressed = false;
             leftReleased = false;
-            output[cursorY][cursorX] = previousOutput;
+            outputArray[cursorY][cursorX] = previousOutput;
             if(cursorX-1>1){
                 cursorX-=2;
             }
@@ -841,7 +869,7 @@ public class MainTeleOp extends OpMode {
         {
             rightPressed = false;
             rightReleased = false;
-            output[cursorY][cursorX] = previousOutput;
+            outputArray[cursorY][cursorX] = previousOutput;
             if(cursorX+1<12){
                 cursorX+=2;
             }
@@ -850,7 +878,7 @@ public class MainTeleOp extends OpMode {
         {
             downPressed = false;
             downReleased = false;
-            output[cursorY][cursorX] = previousOutput;
+            outputArray[cursorY][cursorX] = previousOutput;
             cursorY++;
             if(boxRow){
                 cursorX++;
@@ -863,7 +891,7 @@ public class MainTeleOp extends OpMode {
         {
             upPressed = false;
             upReleased = false;
-            output[cursorY][cursorX] = previousOutput;
+            outputArray[cursorY][cursorX] = previousOutput;
             cursorY--;
             if(boxRow){
                 cursorX++;
@@ -891,11 +919,11 @@ public class MainTeleOp extends OpMode {
 
         //2d array output
         String rowOut = "";
-        for(int r=0; r<output.length; r++)
+        for(int r=0; r<outputArray.length; r++)
         {
             rowOut = "";
-            for(int c=0; c<output[1].length; c++) {
-                rowOut += output[r][c];
+            for(int c=0; c<outputArray[1].length; c++) {
+                rowOut += outputArray[r][c];
             }
             telemetry.addData("", rowOut);
         }
@@ -938,27 +966,27 @@ public class MainTeleOp extends OpMode {
 
     }
     public void makeGrid() { //WORKS
-        for (int r = 0; r < output.length; r++) {
-            for (int c = 0; c < output[1].length; c++) {
+        for (int r = 0; r < outputArray.length; r++) {
+            for (int c = 0; c < outputArray[1].length; c++) {
                 if (c != 0 && c != 14) {
                     if (r % 2 == 0 && c % 2 == 0) {
-                        output[r][c] = "   ";
+                        outputArray[r][c] = "   ";
                     } else if (r % 2 == 1 && c % 2 == 1) {
-                        output[r][c] = "   ";
+                        outputArray[r][c] = "   ";
                     } else {
-                        output[r][c] = "◻"; //O
+                        outputArray[r][c] = "◻"; //O
                     }
                 } else {
-                    output[r][c] = "   ";
+                    outputArray[r][c] = "   ";
                 }
-                if ((r == 2 || r == 5 || r == 8) && output[r][c] == "   ") {
-                    output[r][c] = "_.";
+                if ((r == 2 || r == 5 || r == 8) && outputArray[r][c] == "   ") {
+                    outputArray[r][c] = "_.";
                 }
                 if (r == 11) {
                     if (c == 3 || c == 7 || c == 11) {
-                        output[r][c] = "X";
+                        outputArray[r][c] = "X";
                     } else {
-                        output[r][c] = "_";
+                        outputArray[r][c] = "_";
                     }
                 }
             }
