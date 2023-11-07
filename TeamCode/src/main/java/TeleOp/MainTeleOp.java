@@ -534,7 +534,8 @@ public class MainTeleOp extends OpMode {
             armRightServo.setPosition(0);*/
         }
 
-        //push pop
+        //push pop (not for meet 1)
+        /*
         if(x2Released && pushPopInHome)
         {
             x2Released = false;
@@ -547,7 +548,7 @@ public class MainTeleOp extends OpMode {
             x2Pressed = false;
             pushPopInHome = true;
             //pushPopServo.setPosition(0);
-        }
+        }*/
 
         //claw servo
         if(a2Released && clawInHome)
@@ -747,7 +748,7 @@ public class MainTeleOp extends OpMode {
         //manualOn = true;
     }
 
-    public void getColors()
+    public void getColors() //don't know if it works
     {
         colors = new String[] {"G", "P"}; //⬜ 🟪 🟩 🟨
     }

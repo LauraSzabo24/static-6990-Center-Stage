@@ -19,23 +19,57 @@ public class PropDetectorRED extends OpenCvPipeline {
     }
     private Location location;
 
+    //for reference only (0,0) in top left
+    static final Rect SCREENSIZEBOX = new Rect( //make this the correct area
+            new Point(0, 0),
+            new Point(320, 240));
+
+    //actual boxes
     static final Rect LEFT_ROI = new Rect( //make this the correct area
-            new Point(60, 35),
-            new Point(120, 75));
+            new Point(0, 0),
+            new Point(310, 240));
     static final Rect CENTER_ROI = new Rect( //make this the correct area
             new Point(140, 35),
             new Point(200, 75));
-    static double PERCENT_COLOR_THRESHOLD = 0.4;
+    static double PERCENT_COLOR_THRESHOLD = 0.01;
 
     public PropDetectorRED(Telemetry t) { telemetry = t; }
 
     @Override
     public Mat processFrame(Mat input) {
+        //test to see where the boxes go, once the boxes are in correct location, then continue
+        Scalar testColor = new Scalar(255, 0, 0);
+        Imgproc.rectangle(mat, LEFT_ROI, testColor);
+        Imgproc.rectangle(mat, CENTER_ROI, testColor);
+
+
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
-        Scalar lowHSVRED = new Scalar(10, 72, 76);
-        Scalar highHSVRED = new Scalar(0, 96, 49);
+
+        //FOR REFERENCE
+        Scalar lowHSVYELLOW= new Scalar(10, 0, 0);
+        Scalar highHSVYELLOW = new Scalar(25, 255, 255);
+
+        Scalar lowHSVBLUE = new Scalar(90, 0, 0);
+        Scalar highHSVBLUE = new Scalar(110, 255, 255);
+
+        Scalar lowHSVREDD = new Scalar(10, 0, 0);
+        Scalar highHSVREDD = new Scalar(160, 255, 255);
+
+        Scalar lowHSVGREEN= new Scalar(45, 0, 0);
+        Scalar highHSVGREEN = new Scalar(76, 255, 255);
+
+        Scalar lowHSVPURPLE= new Scalar(120, 50, 50);
+        Scalar highHSVPURPLE = new Scalar(170, 255, 255);
+
+        Scalar lowHSVWHITE= new Scalar(0, 0, 80);
+        Scalar highHSVWHITE = new Scalar(180, 30, 255);
+        //REFERENCE ENDS HERE
+
+        Scalar lowHSVRED = new Scalar(10, 0, 0);
+        Scalar highHSVRED = new Scalar(160, 255, 255);
 
         Core.inRange(mat, lowHSVRED, highHSVRED, mat);
+        Core.bitwise_not(mat, mat); //for red only
 
         Mat left = mat.submat(LEFT_ROI); //the area on the camera that would be the left prop if it's there
         Mat center = mat.submat(CENTER_ROI); //area on the camera that would be the right prop if it's there

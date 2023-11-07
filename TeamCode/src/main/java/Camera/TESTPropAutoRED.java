@@ -50,6 +50,7 @@ public class TESTPropAutoRED extends LinearOpMode {
             case NOT_FOUND:
                 // ... run right auto
         }
+        //comment out for testing
         cam.stopStreaming();
 
         //do the rest of the auto
