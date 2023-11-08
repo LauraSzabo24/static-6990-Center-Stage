@@ -26,12 +26,12 @@ public class PropDetectorRED extends OpenCvPipeline {
 
     //actual boxes
     static final Rect LEFT_ROI = new Rect( //make this the correct area
-            new Point(0, 0),
-            new Point(310, 240));
+            new Point(14, 0),
+            new Point(140, 90));
     static final Rect CENTER_ROI = new Rect( //make this the correct area
-            new Point(140, 35),
-            new Point(200, 75));
-    static double PERCENT_COLOR_THRESHOLD = 0.01;
+            new Point(143, 0),
+            new Point(282, 100));
+    static double PERCENT_COLOR_THRESHOLD = 0.1;
 
     public PropDetectorRED(Telemetry t) { telemetry = t; }
 
@@ -49,11 +49,11 @@ public class PropDetectorRED extends OpenCvPipeline {
         Scalar lowHSVYELLOW= new Scalar(10, 0, 0);
         Scalar highHSVYELLOW = new Scalar(25, 255, 255);
 
-        Scalar lowHSVBLUE = new Scalar(90, 0, 0);
-        Scalar highHSVBLUE = new Scalar(110, 255, 255);
+        Scalar lowHSVBLUE = new Scalar(70, 100, 0);
+        Scalar highHSVBLUE = new Scalar(110, 255, 200);
 
         Scalar lowHSVREDD = new Scalar(10, 0, 0);
-        Scalar highHSVREDD = new Scalar(160, 255, 255);
+        Scalar highHSVREDD = new Scalar(175, 255, 255);
 
         Scalar lowHSVGREEN= new Scalar(45, 0, 0);
         Scalar highHSVGREEN = new Scalar(76, 255, 255);
@@ -66,7 +66,7 @@ public class PropDetectorRED extends OpenCvPipeline {
         //REFERENCE ENDS HERE
 
         Scalar lowHSVRED = new Scalar(10, 0, 0);
-        Scalar highHSVRED = new Scalar(160, 255, 255);
+        Scalar highHSVRED = new Scalar(175, 255, 255);
 
         Core.inRange(mat, lowHSVRED, highHSVRED, mat);
         Core.bitwise_not(mat, mat); //for red only
@@ -120,6 +120,10 @@ public class PropDetectorRED extends OpenCvPipeline {
         else if(location == Location.CENTER)
         {
             Imgproc.rectangle(mat, CENTER_ROI, propBoxColor);
+        }
+        else{
+            Imgproc.rectangle(mat, CENTER_ROI, propBoxColor);
+            Imgproc.rectangle(mat, LEFT_ROI, propBoxColor);
         }
 
         return mat;

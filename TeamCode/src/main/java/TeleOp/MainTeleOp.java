@@ -11,9 +11,27 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import java.util.*;
+
+import Camera.PropDetectorRED;
+
+/* To Do
+    - fix color camera mess
+    - fix distance calculator for x direction
+    - change inches to slide value for y direction
+    - add row to tetris
+ */
 
 @TeleOp
 public class MainTeleOp extends OpMode {
+    //Camera
+    OpenCvCamera colorCam;
+    ColorDetector detectorOfColor;
+    boolean wasNada;
 
     //PID material
     DcMotorEx slideMotorRight;
@@ -77,7 +95,7 @@ public class MainTeleOp extends OpMode {
     private int[] firstPos;
     private int[] secPos;
     private boolean confirmB;
-    private String[] colors;
+    private ArrayList<String> colors;
     private String previousOutput;
 
     //button controls for DRIVER B
@@ -180,12 +198,14 @@ public class MainTeleOp extends OpMode {
         confirmB = false;
         previousOutput = "";
         boxRow = true;
-        colors = new String[] {"", ""};
+        colors = new ArrayList<String> ();
+        colors.add("");
+        colors.add("");
         makeGrid();
         printAll();
 
         //color
-        getColors();
+        //getColors();
         a2Pressed = false;
         a2Released = false;
         b2Pressed = false;
@@ -209,7 +229,34 @@ public class MainTeleOp extends OpMode {
     }
     public void cameraInit()
     {
-        //color camera stuff goes in here
+        int cameraMonitorViewId = hardwareMap.appContext
+                .getResources().getIdentifier("cameraMonitorViewId",
+                        "id", hardwareMap.appContext.getPackageName());
+
+        WebcamName camera = hardwareMap.get(WebcamName.class, "camera");
+        OpenCvCamera colorCam = OpenCvCameraFactory.getInstance().createWebcam(camera, cameraMonitorViewId);
+
+        detectorOfColor = new ColorDetector(telemetry);
+        colorCam.setPipeline(detectorOfColor);
+        colorCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                telemetry.addLine("CAMERA WORKS");
+                telemetry.update();
+                colorCam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+            }
+            @Override
+            public void onError(int errorCode)
+            {
+                telemetry.addData("THE CAMERA DID NOT OPEN PROPERLY SEND HELP", errorCode);
+                telemetry.update();
+            }
+        });
+        //getColors();
+        wasNada = false;
+        colorCam.stopStreaming(); //camera opening in teleOP
     }
     public void pidInit()
     {
@@ -324,8 +371,9 @@ public class MainTeleOp extends OpMode {
         }
 
         //Tetris color checker
-        if(colors[0].equals("") && colors[1].equals("") && confirmB && confirmA)
+        if(colors.get(0).equals("") && colors.get(0).equals("") && manualOn )//&& wasNada)
         {
+            //wasNada = false;
             //getColors();
         }
 
@@ -750,7 +798,23 @@ public class MainTeleOp extends OpMode {
 
     public void getColors() //don't know if it works
     {
-        colors = new String[] {"G", "P"}; //⬜ 🟪 🟩 🟨
+        switch (detectorOfColor.getColor()) {
+            case WHITE:
+                colors.add("W");
+                break;
+            case PURPLE:
+                colors.add("P");
+                break;
+            case YELLOW:
+                colors.add("Y");
+                break;
+            case GREEN:
+                colors.add("G");
+                break;
+            case NADA:
+                wasNada = true;
+        }
+        colorCam.stopStreaming();
     }
     public void updateTetrisThing()
     {
@@ -777,20 +841,20 @@ public class MainTeleOp extends OpMode {
 
 
         //selection
-        if(a2Released && manualOn && !(colors[0].equals("")))
+        if(a2Released && manualOn && !(colors.get(0).equals("")))
         {
             a2Pressed = false;
             a2Released = false;
-            outputArray[cursorY][cursorX] = colors[0];
-            if(colors[1]=="")
+            outputArray[cursorY][cursorX] = colors.get(0);
+            if(colors.get(1)=="")
             {
                 secPos = new int[]{cursorY, cursorX};
             }
             else{
                 firstPos = new int[]{cursorY, cursorX};
             }
-            colors[0]=colors[1];
-            colors[1]="";
+            colors.set(0,colors.get(1));
+            colors.set(1,"");
         }
 
         //retrieval???? necessary???
@@ -916,7 +980,7 @@ public class MainTeleOp extends OpMode {
     {
         //colors avaliable
         telemetry.addLine(String.format("                    1      2"));
-        telemetry.addLine(String.format("COLORS - "+colors[0]+"      "+colors[1]));
+        telemetry.addLine(String.format("COLORS - "+colors.get(0)+"      "+colors.get(1)));
 
         //2d array output
         String rowOut = "";
@@ -952,11 +1016,11 @@ public class MainTeleOp extends OpMode {
         {
             telemetry.addLine(String.format("CONFIRMED PLEASE WAIT"));
         }
-        else if(colors[1].equals("") && firstPos[0]!=-1)
+        else if(colors.get(1).equals("") && firstPos[0]!=-1)
         {
             telemetry.addLine(String.format("UNCONFIRMED CHANGES"));
         }
-        else if(colors[0].equals("") && colors[1].equals(""))
+        else if(colors.get(0).equals("") && colors.get(1).equals(""))
         {
             telemetry.addLine(String.format("NO PIXELS LOADED"));
         }
