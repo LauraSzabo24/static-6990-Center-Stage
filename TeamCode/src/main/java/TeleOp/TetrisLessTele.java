@@ -168,7 +168,6 @@ public class TetrisLessTele extends OpMode {
 
         //intake motor
         intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
-        //motorFrontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     public void driverBInitialize()
     {
@@ -277,7 +276,7 @@ public class TetrisLessTele extends OpMode {
             emergencyModeControls();
         }
 
-        //PID (FIXXXX)
+        //PID
         /*double currentSlidePos = slideMotorLeft.getCurrentPosition();
         if(gamepad2.a) {
             targetPosition = 5000;
@@ -479,41 +478,41 @@ public class TetrisLessTele extends OpMode {
     {
         updateDriverAControls();
 
-        //ALL DRIVER B CONTROLS HEREEEEEEEEEEEEEEEEEEEEEEEEEE
-        //int slidePos = slideMotorLeft.getCurrentPosition();
-        int slidePos = 400; //DONT USE SLIDE POS FOR TARGET USE CURRENT
+        //ALL DRIVER B CONTROLS
+        int slidePos = slideMotorLeft.getCurrentPosition();
+        //int slidePos = 400; //testing purposes only
         if(gamepad2.dpad_up && slidePos<4400 )
         {
             /*slideMotorLeft.setPower(2);
             slideMotorRight.setPower(2);*/
             targetPosition = slidePos;
-            telemetry.addLine(String.format("slide go up"));
-            slidePos+=50; //REMOVE THIS TESTING ONLY
+            telemetry.addLine(String.format("slide goes up"));
+            //slidePos+=50; //testing purposes only
         }
         if(gamepad2.dpad_down && slidePos > 50)
         {
             /*slideMotorLeft.setPower(-2);
             slideMotorRight.setPower(-2);*/
             targetPosition = slidePos;
-            telemetry.addLine(String.format("slide go down"));
-            slidePos -=50; //REMOVE THIS TESTING ONLY
+            telemetry.addLine(String.format("slide goes down"));
+            //slidePos -=50; //testing purposes only
         }
         if(!gamepad2.dpad_up && !gamepad2.dpad_down && (Math.abs(targetPosition - slidePos)<15))
         {
             /*slideMotorLeft.setPower(0);
             slideMotorRight.setPower(0);*/
-            telemetry.addLine(String.format("slide standby"));
+            telemetry.addLine(String.format("slide on standby"));
         }
-        if(gamepad2.dpad_left) //no clue what this is
+        if(gamepad2.dpad_left)
         {
             targetPosition = 0;
-            telemetry.addLine(String.format("slide full down"));
-            slidePos = 0; //REMOVE THIS TESTING ONLY
+            telemetry.addLine(String.format("slide goes full down"));
+            //slidePos = 0; //for testing only
         }
-        //double power = returnPower(targetPosition, slideMotorLeft.getCurrentPosition());
-        double power = -55; //REMOVE JUST FOR TESTING
-        //telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
-        //telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
+        double power = returnPower(targetPosition, slideMotorLeft.getCurrentPosition());
+        //double power = -55; //testing purposes only
+        telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
+        telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
         telemetry.addData("targetPosition: ", targetPosition);
         telemetry.addData("power: ", power);
 
