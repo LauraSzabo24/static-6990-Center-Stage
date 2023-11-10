@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
@@ -32,7 +33,7 @@ public class PIDController extends LinearOpMode {
     public static double Kp = 0.01;
     public static double Kd = 0.0;
 
-    public static double targetPosition = 5000;
+    public static double targetPosition = 100;
 
     private final FtcDashboard dashboard = FtcDashboard.getInstance();
     @Override
@@ -52,17 +53,18 @@ public class PIDController extends LinearOpMode {
 
         motor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        int targetPosition = 0;
         waitForStart();
 
-        int targetPosition = 0;
+
 
 
         while(opModeIsActive()){
             if(gamepad1.a) {
-                targetPosition = 5000;
+                targetPosition = 50;
             }
             if(gamepad1.b){
-                targetPosition = 0;
+                targetPosition = -50;
             }
                 double power = returnPower(targetPosition, motor1.getCurrentPosition());
                 packet.put("power", power);
@@ -73,7 +75,7 @@ public class PIDController extends LinearOpMode {
                 telemetry.addData("position",motor1.getCurrentPosition());
                 telemetry.addData("error", lastError);
 
-                motor1.setPower(power);
+                motor1.setPower(-power);
                 motor2.setPower(power);
                 telemetry.update();
 
