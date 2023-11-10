@@ -1,8 +1,6 @@
 package TeleOp;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,27 +10,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import java.util.*;
 
-import Camera.PropDetectorRED;
-
-/* To Do
-    - fix color camera mess
-    - fix distance calculator for x direction
-    - change inches to slide value for y direction
-    - add row to tetris
- */
+//copied last 11/7/2023 12:47 am
 
 @TeleOp
-public class MainTeleOp extends LinearOpMode {
-    //Camera
-    OpenCvCamera colorCam;
-    ColorDetector detectorOfColor;
-    boolean wasNothing;
+public class TetrisLessTele extends OpMode {
 
     //PID material
     DcMotorEx slideMotorRight;
@@ -96,7 +78,7 @@ public class MainTeleOp extends LinearOpMode {
     private int[] firstPos;
     private int[] secPos;
     private boolean confirmB;
-    private ArrayList<String> colors;
+    private String[] colors;
     private String previousOutput;
 
     //button controls for DRIVER B
@@ -178,15 +160,15 @@ public class MainTeleOp extends LinearOpMode {
         pushPopInHome = true;
         clawInHome = true;
         intakeLiftInHome = true;
-        /*clawServo = hardwareMap.get(Servo.class, "armRightServo");
-        armRightServo = hardwareMap.get(Servo.class, "armRightServo");
-        armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
-        pushPopServo = hardwareMap.get(Servo.class, "pushPopServo");
-        intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");*/
+        //clawServo = hardwareMap.get(Servo.class, "armRightServo");
+        //armRightServo = hardwareMap.get(Servo.class, "armRightServo");
+        //armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
+        //pushPopServo = hardwareMap.get(Servo.class, "pushPopServo");
+        //intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");
 
         //intake motor
-        /*intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);*/
+        intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
+        //motorFrontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     public void driverBInitialize()
     {
@@ -199,11 +181,12 @@ public class MainTeleOp extends LinearOpMode {
         confirmB = false;
         previousOutput = "";
         boxRow = true;
-        colors = new ArrayList<String> ();
+        colors = new String[] {"", ""};
         makeGrid();
         printAll();
 
         //color
+        getColors();
         a2Pressed = false;
         a2Released = false;
         b2Pressed = false;
@@ -227,32 +210,7 @@ public class MainTeleOp extends LinearOpMode {
     }
     public void cameraInit()
     {
-        int cameraMonitorViewId = hardwareMap.appContext
-                .getResources().getIdentifier("cameraMonitorViewId",
-                        "id", hardwareMap.appContext.getPackageName());
-
-        WebcamName camera = hardwareMap.get(WebcamName.class, "camera");
-        colorCam = OpenCvCameraFactory.getInstance().createWebcam(camera, cameraMonitorViewId);
-
-        detectorOfColor = new ColorDetector(telemetry);
-        colorCam.setPipeline(detectorOfColor);
-        colorCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                telemetry.addLine("CAMERA WORKS");
-                telemetry.update();
-                colorCam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-            }
-            @Override
-            public void onError(int errorCode)
-            {
-                telemetry.addData("THE CAMERA DID NOT OPEN PROPERLY SEND HELP", errorCode);
-                telemetry.update();
-            }
-        });
-        wasNothing = false;
+        //color camera stuff goes in here
     }
     public void pidInit()
     {
@@ -266,23 +224,25 @@ public class MainTeleOp extends LinearOpMode {
         targetPosition = 0;*/
     }
     @Override
-    public void runOpMode() throws InterruptedException
+    public void init()
     {
         pidInit();
         driverAInitialize();
         driverBInitialize();
         cameraInit();
-        waitForStart();
-
-        makeGrid();
-        while(opModeIsActive()){
-            fakeLoop();
-        }
-        colorCam.stopStreaming();
     }
-
-    public void fakeLoop()
+    @Override
+    public void start()
     {
+        makeGrid();
+        //everything goes in here that isn't looping, won't be much
+    }
+    @Override
+    public void loop()
+    {
+        //ONLY FOR MEET ONE
+        emergencyMode = true;
+
         //button update
         updateDriverAButtons();
 
@@ -302,10 +262,10 @@ public class MainTeleOp extends LinearOpMode {
             y1Released = false;
             y1Pressed = false;*/
             if(emergencyMode)            {
-                emergencyMode = false;
+                //emergencyMode = false;
             }
             else {
-                emergencyMode = true;
+                //emergencyMode = true;
             }
             a2Released = false;
             a2Pressed = false;
@@ -368,10 +328,9 @@ public class MainTeleOp extends LinearOpMode {
         }
 
         //Tetris color checker
-        if(manualOn && colors.size()<2)
+        if(colors[0].equals("") && colors[1].equals("") && confirmB && confirmA)
         {
-            //wasNothing = false;
-            getColors();
+            //getColors();
         }
 
         //Tetris Pixel Placing Thing
@@ -466,11 +425,11 @@ public class MainTeleOp extends LinearOpMode {
         //intake spinner sucking vacuum cleaner thing
         if(gamepad1.a)
         {
-            //intakeMotor.setPower(2);
+            intakeMotor.setPower(1.3);
             telemetry.addLine(String.format("powering vacuum"));
         }
         else{
-            //intakeMotor.setPower(0);
+            intakeMotor.setPower(0);
             telemetry.addLine(String.format("vacuum on standby"));
         }
 
@@ -580,8 +539,7 @@ public class MainTeleOp extends LinearOpMode {
         }
 
         //push pop (not for meet 1)
-        /*
-        if(x2Released && pushPopInHome)
+        /*if(x2Released && pushPopInHome)
         {
             x2Released = false;
             x2Pressed = false;
@@ -611,7 +569,7 @@ public class MainTeleOp extends LinearOpMode {
         }
 
         //telemetry CAN DELETE LATERRRRR
-        /*if(armInHome){
+        if(armInHome){
             telemetry.addLine(String.format("arm in"));
         }
         else{
@@ -628,7 +586,7 @@ public class MainTeleOp extends LinearOpMode {
         }
         else{
             telemetry.addLine(String.format("push pop out"));
-        }*/
+        }
     }
 
     //BUTTON UPDATES
@@ -793,35 +751,9 @@ public class MainTeleOp extends LinearOpMode {
         //manualOn = true;
     }
 
-    public void getColors() //don't know if it works
+    public void getColors()
     {
-        switch (detectorOfColor.getColor()) {
-            case WHITE:
-                colors.add("W");
-                break;
-            case PURPLE:
-                colors.add("P");
-                break;
-            case YELLOW:
-                colors.add("Y");
-                break;
-            case GREEN:
-                colors.add("G");
-                break;
-            case NOTHING:
-                colors.add("NONE");
-                wasNothing = true;
-        }
-        /*switch (detectorOfColor.getLocation()) {
-            case LEFT:
-                colors.add(0,"left");
-                break;
-            case CENTER:
-                colors.add(0,"center");
-                break;
-            case NOT_FOUND:
-                colors.add(0,"right");
-        }*/
+        colors = new String[] {"G", "P"}; //⬜ 🟪 🟩 🟨
     }
     public void updateTetrisThing()
     {
@@ -848,21 +780,20 @@ public class MainTeleOp extends LinearOpMode {
 
 
         //selection
-        if(a2Released && manualOn && colors.size()>0)
+        if(a2Released && manualOn && !(colors[0].equals("")))
         {
             a2Pressed = false;
             a2Released = false;
-            outputArray[cursorY][cursorX] = colors.get(0);
-            if(colors.size()<2)
+            outputArray[cursorY][cursorX] = colors[0];
+            if(colors[1]=="")
             {
                 secPos = new int[]{cursorY, cursorX};
             }
             else{
                 firstPos = new int[]{cursorY, cursorX};
             }
-            colors.remove(0);
-            //colors.set(0,colors.get(1));
-            //colors.set(1,"");
+            colors[0]=colors[1];
+            colors[1]="";
         }
 
         //retrieval???? necessary???
@@ -988,16 +919,7 @@ public class MainTeleOp extends LinearOpMode {
     {
         //colors avaliable
         telemetry.addLine(String.format("                    1      2"));
-        if(colors.size()>1) {
-            telemetry.addLine(String.format("COLORS - " + colors.get(0) + "      " + colors.get(1)));
-        }
-        else if(colors.size()>0)
-        {
-            telemetry.addLine(String.format("COLORS - " + colors.get(0)));
-        }
-        else{
-            telemetry.addLine(String.format("COLORS - " ));
-        }
+        telemetry.addLine(String.format("COLORS - "+colors[0]+"      "+colors[1]));
 
         //2d array output
         String rowOut = "";
@@ -1033,11 +955,11 @@ public class MainTeleOp extends LinearOpMode {
         {
             telemetry.addLine(String.format("CONFIRMED PLEASE WAIT"));
         }
-        else if(colors.size()>0 && firstPos[0]!=-1)
+        else if(colors[1].equals("") && firstPos[0]!=-1)
         {
             telemetry.addLine(String.format("UNCONFIRMED CHANGES"));
         }
-        else if(colors.size()==0)
+        else if(colors[0].equals("") && colors[1].equals(""))
         {
             telemetry.addLine(String.format("NO PIXELS LOADED"));
         }

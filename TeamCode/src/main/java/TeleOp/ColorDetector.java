@@ -19,7 +19,7 @@ public class ColorDetector extends OpenCvPipeline {
         PURPLE,
         YELLOW,
         GREEN,
-        NADA
+        NOTHING
     }
     private Color pixelColor;
 
@@ -30,12 +30,12 @@ public class ColorDetector extends OpenCvPipeline {
 
     //actual boxes
     static final Rect INTAKEBOX = new Rect( //make this the correct area
-            new Point(14, 0),
-            new Point(140, 90));
-    static double PERCENT_COLOR_THRESHOLD = 0.1;
+            new Point(0, 0),
+            new Point(320, 240));
+    static double PERCENT_COLOR_THRESHOLD = 0.3;
 
 
-    public ColorDetector(Telemetry t) { telemetry = t; }
+    public ColorDetector(Telemetry t)    {telemetry = t;    }
 
     @Override
     public Mat processFrame(Mat input) {
@@ -55,43 +55,64 @@ public class ColorDetector extends OpenCvPipeline {
         Scalar lowHSVWHITE= new Scalar(0, 0, 80);
         Scalar highHSVWHITE = new Scalar(180, 30, 255);
 
-        Mat left = mat.submat(INTAKEBOX);
-        pixelColor = Color.NADA;
+        pixelColor = Color.NOTHING;
+        Mat newMat = mat;
+        boolean run  = false;
 
-        //yellow
-        Core.inRange(mat, lowHSVYELLOW, highHSVYELLOW, mat);
-        double colorPercentage = Core.sumElems(left).val[0] / INTAKEBOX.area() / 255;
-        if(colorPercentage > PERCENT_COLOR_THRESHOLD)
-        {
-            pixelColor = Color.YELLOW;
-            telemetry.addData("Color", "yellow");
-        }
         //purple
-        Core.inRange(mat, lowHSVPURPLE, highHSVPURPLE, mat);
-        colorPercentage = Core.sumElems(left).val[0] / INTAKEBOX.area() / 255;
-        if(colorPercentage > PERCENT_COLOR_THRESHOLD)
+        Core.inRange(mat, lowHSVPURPLE, highHSVPURPLE, newMat);
+        Mat purpleIntakeArea = mat.submat(INTAKEBOX);
+        double purpleColorPercentage = Core.sumElems(purpleIntakeArea).val[0] / INTAKEBOX.area() / 255;
+        purpleIntakeArea.release();
+        if(purpleColorPercentage > PERCENT_COLOR_THRESHOLD && run==false)
         {
+            run = true;
             pixelColor = Color.PURPLE;
-            telemetry.addData("Color", "purple");
+            telemetry.addData("in Color", "purple");
+        }
+        //yellow
+        Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
+        Core.inRange(mat, lowHSVYELLOW, highHSVYELLOW, newMat);
+        Mat yellowIntakeArea = mat.submat(INTAKEBOX);
+        double yellowColorPercentage = Core.sumElems(yellowIntakeArea).val[0] / INTAKEBOX.area() / 255;
+        yellowIntakeArea.release();
+        if(yellowColorPercentage > PERCENT_COLOR_THRESHOLD && run==false)
+        {
+            run = true;
+            pixelColor = Color.YELLOW;
+            telemetry.addData("in Color", "yellow");
         }
         //green
-        Core.inRange(mat, lowHSVGREEN, highHSVGREEN, mat);
-        colorPercentage = Core.sumElems(left).val[0] / INTAKEBOX.area() / 255;
-        if(colorPercentage > PERCENT_COLOR_THRESHOLD)
+        Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
+        Core.inRange(mat, lowHSVGREEN, highHSVGREEN, newMat);
+        Mat greenIntakeArea = mat.submat(INTAKEBOX);
+        double greenColorPercentage = Core.sumElems(greenIntakeArea).val[0] / INTAKEBOX.area() / 255;
+        greenIntakeArea.release();
+        if(greenColorPercentage > PERCENT_COLOR_THRESHOLD && run==false)
         {
+            run = true;
             pixelColor = Color.GREEN;
-            telemetry.addData("Color", "green");
+            telemetry.addData("in Color", "green");
         }
         //white
-        Core.inRange(mat, lowHSVWHITE, highHSVWHITE, mat);
-        colorPercentage = Core.sumElems(left).val[0] / INTAKEBOX.area() / 255;
-        if(colorPercentage > PERCENT_COLOR_THRESHOLD)
+        Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
+        Core.inRange(mat, lowHSVWHITE, highHSVWHITE, newMat);
+        Mat whiteIntakeArea = mat.submat(INTAKEBOX);
+        double whiteColorPercentage = Core.sumElems(whiteIntakeArea).val[0] / INTAKEBOX.area() / 255;
+        whiteIntakeArea.release();
+        if(whiteColorPercentage > PERCENT_COLOR_THRESHOLD && run==false)
         {
+            run = true;
             pixelColor = Color.WHITE;
-            telemetry.addData("Color", "white");
+            telemetry.addData("in Color", "white");
         }
 
-        left.release();
+        if(pixelColor == null || pixelColor == Color.NOTHING)
+        {
+            pixelColor = Color.NOTHING;
+            telemetry.addData("in Color", "nothing");
+        }
+        telemetry.update();
 
         //for display purposes
         Imgproc.cvtColor(mat, mat, Imgproc.COLOR_GRAY2RGB);
