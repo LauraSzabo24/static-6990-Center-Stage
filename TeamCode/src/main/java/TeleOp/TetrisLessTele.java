@@ -128,7 +128,7 @@ public class TetrisLessTele extends OpMode {
         dashboard.setTelemetryTransmissionInterval(25);
 
         //slide motors
-        /*slideMotorLeft = hardwareMap.get(DcMotorEx.class, "LeftSlide");
+        slideMotorLeft = hardwareMap.get(DcMotorEx.class, "LeftSlide");
         slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slideMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -138,11 +138,11 @@ public class TetrisLessTele extends OpMode {
         slideMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slideMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        slideMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);*/
+        slideMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
         targetPosition = 0;
 
         //drive motors
-       /* motorFrontLeft = (DcMotorEx) hardwareMap.dcMotor.get("FL");
+        motorFrontLeft = (DcMotorEx) hardwareMap.dcMotor.get("FL");
         motorBackLeft = (DcMotorEx) hardwareMap.dcMotor.get("BL");
         motorFrontRight = (DcMotorEx) hardwareMap.dcMotor.get("FR");
         motorBackRight = (DcMotorEx) hardwareMap.dcMotor.get("BR");
@@ -153,21 +153,25 @@ public class TetrisLessTele extends OpMode {
         motorBackRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         motorFrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);*/
+        motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //intake outake servos
         armInHome = true;
         pushPopInHome = true;
         clawInHome = true;
         intakeLiftInHome = true;
-        //clawServo = hardwareMap.get(Servo.class, "armRightServo");
-        //armRightServo = hardwareMap.get(Servo.class, "armRightServo");
-        //armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
+        clawServo = hardwareMap.get(Servo.class, "claw");
+        armRightServo = hardwareMap.get(Servo.class, "armRightServo");
+        armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
         //pushPopServo = hardwareMap.get(Servo.class, "pushPopServo");
-        //intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");
+        intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");
 
         //intake motor
         intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
+
+        //arm into position
+        armLeftServo.setPosition(0.99);
+        armRightServo.setPosition(0.01);
     }
     public void driverBInitialize()
     {
@@ -364,6 +368,7 @@ public class TetrisLessTele extends OpMode {
             telemetry.addLine(String.format("push pop out"));
         }
 
+        telemetry.addData("servo position in ", armLeftServo.getPosition());
         telemetry.update();
     }
 
@@ -390,19 +395,19 @@ public class TetrisLessTele extends OpMode {
         //pivots
         if(gamepad1.right_bumper)
         {
-            /*motorBackLeft.setPower(0);
+            motorBackLeft.setPower(0);
             motorBackRight.setPower(0);
-            motorFrontLeft.setPower(2);//0.9
-            motorFrontRight.setPower(-2);*/
+            motorFrontLeft.setPower(1.5);//0.9
+            motorFrontRight.setPower(-1.5);
             telemetry.addLine(String.format("pivot right"));
 
         }
         else if(gamepad1.left_bumper)
         {
-            /*motorBackLeft.setPower(0);
+            motorBackLeft.setPower(0);
             motorBackRight.setPower(0);
-            motorFrontLeft.setPower(-2);
-            motorFrontRight.setPower(2);*/
+            motorFrontLeft.setPower(-1.5);
+            motorFrontRight.setPower(1.5);
             telemetry.addLine(String.format("pivot left"));
         }
 
@@ -412,13 +417,13 @@ public class TetrisLessTele extends OpMode {
             y1Pressed = false;
             y1Released = false;
             intakeLiftInHome = false;
-            //intakeLiftServo.setPosition(0.45);
+            intakeLiftServo.setPosition(1);
         }
         if(y1Released && !intakeLiftInHome) {
             y1Pressed = false;
             y1Released = false;
             intakeLiftInHome = true;
-            //intakeLiftServo.setPosition(0);
+            intakeLiftServo.setPosition(0);
         }
 
         //intake spinner sucking vacuum cleaner thing
@@ -426,6 +431,11 @@ public class TetrisLessTele extends OpMode {
         {
             intakeMotor.setPower(1.3);
             telemetry.addLine(String.format("powering vacuum"));
+        }
+        else if(gamepad1.x)
+        {
+            intakeMotor.setPower(-0.6);
+            telemetry.addLine(String.format("powering vacuum BACK"));
         }
         else{
             intakeMotor.setPower(0);
@@ -455,10 +465,10 @@ public class TetrisLessTele extends OpMode {
         double frontRightPower = (y - x - rx) / denominator;
         double backRightPower = (y + x - rx) / denominator;
 
-        /*motorFrontLeft.setPower(frontLeftPower);
-        motorBackLeft.setPower(backLeftPower);
-        motorFrontRight.setPower(frontRightPower);
-        motorBackRight.setPower(backRightPower);*/
+        motorFrontLeft.setPower(frontLeftPower/2);
+        motorBackLeft.setPower(backLeftPower/2);
+        motorFrontRight.setPower(frontRightPower/2);
+        motorBackRight.setPower(backRightPower/2);
         telemetry.addLine(String.format("setting motor powers to:"));
         telemetry.addData("frontLeft ", frontLeftPower);
         telemetry.addData("backLeft ", backLeftPower);
@@ -472,49 +482,39 @@ public class TetrisLessTele extends OpMode {
 
 
 
-
     //EMERGENCY MODE THINGS HEREEE
     public void emergencyModeControls()
     {
         updateDriverAControls();
 
         //ALL DRIVER B CONTROLS
-        int slidePos = slideMotorLeft.getCurrentPosition();
-        //int slidePos = 400; //testing purposes only
-        if(gamepad2.dpad_up && slidePos<4400 )
+        if(gamepad2.dpad_up && slideMotorLeft.getCurrentPosition()<3500 )
         {
-            /*slideMotorLeft.setPower(2);
-            slideMotorRight.setPower(2);*/
-            targetPosition = slidePos;
+            slideMotorLeft.setPower(0.7);
+            slideMotorRight.setPower(0.7);
             telemetry.addLine(String.format("slide goes up"));
-            //slidePos+=50; //testing purposes only
         }
-        if(gamepad2.dpad_down && slidePos > 50)
+        if(gamepad2.dpad_down && slideMotorLeft.getCurrentPosition() > 100)
         {
-            /*slideMotorLeft.setPower(-2);
-            slideMotorRight.setPower(-2);*/
-            targetPosition = slidePos;
+            slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);
             telemetry.addLine(String.format("slide goes down"));
-            //slidePos -=50; //testing purposes only
         }
-        if(!gamepad2.dpad_up && !gamepad2.dpad_down && (Math.abs(targetPosition - slidePos)<15))
+        if(!gamepad2.dpad_up && !gamepad2.dpad_down) //&& (Math.abs(targetPosition - slidePos)<15))
         {
-            /*slideMotorLeft.setPower(0);
-            slideMotorRight.setPower(0);*/
+            slideMotorLeft.setPower(0);
+            slideMotorRight.setPower(0);
             telemetry.addLine(String.format("slide on standby"));
         }
         if(gamepad2.dpad_left)
         {
-            targetPosition = 0;
             telemetry.addLine(String.format("slide goes full down"));
-            //slidePos = 0; //for testing only
         }
-        double power = returnPower(targetPosition, slideMotorLeft.getCurrentPosition());
-        //double power = -55; //testing purposes only
+        //double power = returnPower(targetPosition, slideMotorLeft.getCurrentPosition());
         telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
         telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
-        telemetry.addData("targetPosition: ", targetPosition);
-        telemetry.addData("power: ", power);
+        //telemetry.addData("targetPosition: ", targetPosition);
+        //telemetry.addData("power: ", power);
 
 
         /*slideMotorLeft.setPower(power);
@@ -526,15 +526,15 @@ public class TetrisLessTele extends OpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = false;
-            /*armLeftServo.setPosition(0.5);
-            armRightServo.setPosition(0.5);*/
+            armLeftServo.setPosition(1);
+            armRightServo.setPosition(0);
         }
         else if(y2Released) {
             y2Released = false;
             y2Pressed = false;
             armInHome = true;
-            /*armLeftServo.setPosition(0);
-            armRightServo.setPosition(0);*/
+            armLeftServo.setPosition(0.3);
+            armRightServo.setPosition(0.7);
         }
 
         //push pop (not for meet 1)
@@ -558,13 +558,13 @@ public class TetrisLessTele extends OpMode {
             a2Released = false;
             a2Pressed = false;
             clawInHome = false;
-            //clawServo.setPosition(0.5);
+            clawServo.setPosition(0.8);
         } else if (a2Released)
         {
             a2Released = false;
             a2Pressed = false;
             clawInHome = true;
-            //clawServo.setPosition(0);
+            clawServo.setPosition(0);
         }
 
         //telemetry CAN DELETE LATERRRRR

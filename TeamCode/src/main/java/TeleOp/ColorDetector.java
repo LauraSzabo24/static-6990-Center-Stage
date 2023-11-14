@@ -32,7 +32,7 @@ public class ColorDetector extends OpenCvPipeline {
     static final Rect INTAKEBOX = new Rect( //make this the correct area
             new Point(0, 0),
             new Point(320, 240));
-    static double PERCENT_COLOR_THRESHOLD = 0.3;
+    static double PERCENT_COLOR_THRESHOLD = 0.2;
 
 
     public ColorDetector(Telemetry t)    {telemetry = t;    }
@@ -49,8 +49,8 @@ public class ColorDetector extends OpenCvPipeline {
         Scalar lowHSVGREEN= new Scalar(45, 0, 0);
         Scalar highHSVGREEN = new Scalar(76, 255, 255);
 
-        Scalar lowHSVPURPLE= new Scalar(120, 50, 50);
-        Scalar highHSVPURPLE = new Scalar(170, 255, 255);
+        Scalar lowHSVPURPLE= new Scalar(120, 20, 50);
+        Scalar highHSVPURPLE = new Scalar(170, 200, 255);
 
         Scalar lowHSVWHITE= new Scalar(0, 0, 80);
         Scalar highHSVWHITE = new Scalar(180, 30, 255);

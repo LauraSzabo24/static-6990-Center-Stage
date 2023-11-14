@@ -32,7 +32,8 @@ public class MainTeleOp extends LinearOpMode {
     //Camera
     OpenCvCamera colorCam;
     ColorDetector detectorOfColor;
-    boolean wasNothing;
+    private boolean wasNothing;
+    private boolean rotationOn;
 
     //PID material
     DcMotorEx slideMotorRight;
@@ -190,6 +191,8 @@ public class MainTeleOp extends LinearOpMode {
     }
     public void driverBInitialize()
     {
+        rotationOn = true;
+
         outputArray = new String[12][13]; //original: 12 13 // new: 12 14
         cursorX = 1;
         cursorY = 10;
@@ -367,10 +370,21 @@ public class MainTeleOp extends LinearOpMode {
             updateTetrisThing();
         }
 
-        //Tetris color checker
-        if(manualOn && colors.size()<2)
+        if(colors.size()>1)
         {
-            //wasNothing = false;
+            rotationOn = false;
+        }
+
+        //Tetris color checker initial
+        if(manualOn && colors.size()<2 && !wasNothing && rotationOn)
+        {
+            if(detectorOfColor.getColor() == ColorDetector.Color.NOTHING)
+            {
+                wasNothing = true;
+            }
+        }
+        if(manualOn && colors.size()<2 && wasNothing && rotationOn)
+        {
             getColors();
         }
 
@@ -380,10 +394,11 @@ public class MainTeleOp extends LinearOpMode {
             int[] place1 = firstPos;
             int[] place2 = secPos;
             runPixelPlacing(place1, place2);
-            //firstPos = new int[]{-1,-1};
-            //secPos = new int[]{-1,-1};
-            //confirmB = false;
-            //confirmA = false;
+            rotationOn = true;
+            firstPos = new int[]{-1,-1};
+            secPos = new int[]{-1,-1};
+            confirmB = false;
+            confirmA = false;
         }
 
         //telemetry CAN DELETE LATERRRRR
@@ -788,13 +803,12 @@ public class MainTeleOp extends LinearOpMode {
                 telemetry.addLine(String.format("y in inches " + position2[1]));
             }
         }
-
-        //put early end / overriding in here
-        //manualOn = true;
+        manualOn = true;
     }
 
-    public void getColors() //don't know if it works
+    public void getColors()
     {
+        wasNothing = false;
         switch (detectorOfColor.getColor()) {
             case WHITE:
                 colors.add("W");
@@ -809,19 +823,8 @@ public class MainTeleOp extends LinearOpMode {
                 colors.add("G");
                 break;
             case NOTHING:
-                colors.add("NONE");
                 wasNothing = true;
         }
-        /*switch (detectorOfColor.getLocation()) {
-            case LEFT:
-                colors.add(0,"left");
-                break;
-            case CENTER:
-                colors.add(0,"center");
-                break;
-            case NOT_FOUND:
-                colors.add(0,"right");
-        }*/
     }
     public void updateTetrisThing()
     {
