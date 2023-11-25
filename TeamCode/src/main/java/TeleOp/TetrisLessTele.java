@@ -1,20 +1,25 @@
 package TeleOp;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 //copied last 11/7/2023 12:47 am
 
 @TeleOp
 public class TetrisLessTele extends OpMode {
+    //drivetrain
+    IMU imu;
 
     //PID material
     DcMotorEx slideMotorRight;
@@ -154,6 +159,16 @@ public class TetrisLessTele extends OpMode {
 
         motorFrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        //imu
+        // Retrieve the IMU from the hardware map
+        imu = hardwareMap.get(IMU.class, "imu");
+        // Adjust the orientation parameters to match your robot
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+            imu.initialize(parameters);
 
         //intake outake servos
         armInHome = true;
@@ -429,7 +444,7 @@ public class TetrisLessTele extends OpMode {
         //intake spinner sucking vacuum cleaner thing
         if(gamepad1.a)
         {
-            intakeMotor.setPower(1.3);
+            intakeMotor.setPower(0.6);
             telemetry.addLine(String.format("powering vacuum"));
         }
         else if(gamepad1.x)
@@ -452,18 +467,25 @@ public class TetrisLessTele extends OpMode {
     }
     public void drive()
     {
-        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
-        double rx = gamepad1.right_stick_x;
+        if (gamepad1.options) {
+            imu.resetYaw();
+        }
 
-        // Denominator is the largest motor power (absolute value) or 1
-        // This ensures all the powers maintain the same ratio,
-        // but only if at least one is out of the range [-1, 1]
-        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-        double frontLeftPower = (y + x + rx) / denominator;
-        double backLeftPower = (y - x + rx) / denominator;
-        double frontRightPower = (y - x - rx) / denominator;
-        double backRightPower = (y + x - rx) / denominator;
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
+        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing (1.1)
+        double rx = gamepad1.right_stick_x; //rotation, fine
+
+        // Rotate the movement direction counter to the bot's rotation
+        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        double frontLeftPower = (rotY + rotX + rx) / denominator;
+        double backLeftPower = (rotY - rotX + rx) / denominator;
+        double frontRightPower = (rotY - rotX - rx) / denominator;
+        double backRightPower = (rotY + rotX - rx) / denominator;
 
         motorFrontLeft.setPower(frontLeftPower/2);
         motorBackLeft.setPower(backLeftPower/2);
@@ -558,16 +580,18 @@ public class TetrisLessTele extends OpMode {
             a2Released = false;
             a2Pressed = false;
             clawInHome = false;
-            clawServo.setPosition(0.8);
+            clawServo.setPosition(0.5);
         } else if (a2Released)
         {
             a2Released = false;
             a2Pressed = false;
             clawInHome = true;
-            clawServo.setPosition(0);
+            clawServo.setPosition(0.8);
         }
 
         //telemetry CAN DELETE LATERRRRR
+        telemetry.addData("servo is at", clawServo.getPosition());
+        telemetry.update();
         if(armInHome){
             telemetry.addLine(String.format("arm in"));
         }
