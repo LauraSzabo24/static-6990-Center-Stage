@@ -1,7 +1,7 @@
 package Camera;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-        import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -9,11 +9,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
-        import org.openftc.easyopencv.OpenCvCameraFactory;
-        import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
 
-        @Autonomous
-public class TESTPropAutoRED extends LinearOpMode {
+@Autonomous
+public class TESTPropAutoBLUE extends LinearOpMode {
     OpenCvCamera cam;
     private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight, intakeMotor;
     private Servo intakeLiftServo;
@@ -64,7 +64,7 @@ public class TESTPropAutoRED extends LinearOpMode {
 
         waitForStart();
         switch (redDetector.getLocation()) {
-            case NOT_FOUND:
+            case LEFT:
                 motorFrontLeft.setPower(-0.5);
                 motorBackLeft.setPower(0.5);
                 motorFrontRight.setPower(0.5);
@@ -114,12 +114,12 @@ public class TESTPropAutoRED extends LinearOpMode {
                 motorBackRight.setPower(-0.5);
                 sleep(3000);
                 break;
-            case LEFT:
+            case NOT_FOUND:
                 motorFrontLeft.setPower(0.5);
                 motorBackLeft.setPower(-0.5);
                 motorFrontRight.setPower(-0.5);
                 motorBackRight.setPower(0.5);
-                sleep(800);
+                sleep(400);
                 motorFrontLeft.setPower(0);
                 motorBackLeft.setPower(0);
                 motorFrontRight.setPower(0);
