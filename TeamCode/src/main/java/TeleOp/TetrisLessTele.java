@@ -473,8 +473,8 @@ public class TetrisLessTele extends OpMode {
 
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing (1.1)
+        double y = gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = -gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing (1.1)
         double rx = gamepad1.right_stick_x; //rotation, fine
 
         // Rotate the movement direction counter to the bot's rotation
