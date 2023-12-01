@@ -1,6 +1,7 @@
 package TeleOp;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -26,7 +27,7 @@ import Camera.PropDetectorRED;
     - change inches to slide value for y direction
     - add row to tetris
  */
-
+@Config
 @TeleOp
 public class MainTeleOp extends LinearOpMode {
     //Camera

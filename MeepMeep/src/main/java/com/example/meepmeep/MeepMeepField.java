@@ -15,7 +15,7 @@ public class MeepMeepField {
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .followTrajectorySequence(drive ->
-                        drive.trajectorySequenceBuilder(new Pose2d(-36/*12*/, 58/*-60*/, Math.toRadians(/*90*/-90)))
+                        drive.trajectorySequenceBuilder(new Pose2d(-36/*12*/, /*58*/-60, Math.toRadians(90/*-90*/)))
                                 //far blue through middle
 
                                 //tape #1
@@ -52,7 +52,7 @@ public class MeepMeepField {
 
                                 //far blue through side
                                 //tape #1
-                                    .lineToLinearHeading(new Pose2d(-36,34,Math.toRadians(180)))
+                                    //.lineToLinearHeading(new Pose2d(-36,34,Math.toRadians(180)))
                                     //place pixel on tape
                                 //tape #2
                                     //.lineToLinearHeading(new Pose2d(-36,34,Math.toRadians(270)))
@@ -63,7 +63,7 @@ public class MeepMeepField {
 
                                 //pick up 2 white pixels
 
-                                .lineToLinearHeading(new Pose2d(-36,58,Math.toRadians(0)))
+                                /*.lineToLinearHeading(new Pose2d(-36,58,Math.toRadians(0)))
                                 .forward(72)
                                 .lineToLinearHeading(new Pose2d(36,34,Math.toRadians(0)))
                                 //place preloaded pixel on board
@@ -78,7 +78,7 @@ public class MeepMeepField {
                                 .lineToLinearHeading(new Pose2d(36,58,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,34,Math.toRadians(180)))
-                                .build()
+                                .build()*/
 
 
 
@@ -152,18 +152,18 @@ public class MeepMeepField {
                                     .lineToLinearHeading(new Pose2d(-36,-12,Math.toRadians(0)))
                                     .forward(72)*/
                                 //tape #2
-                                    /*.lineToLinearHeading(new Pose2d(-36,-36,Math.toRadians(90)))
+                                    .lineToLinearHeading(new Pose2d(-36,-36,Math.toRadians(90)))
                                     //place pixel on tape
                                     .lineToLinearHeading(new Pose2d(-60,-36, Math.toRadians(90)))
                                     .lineToLinearHeading(new Pose2d(-60,-12))
-                                    .forward(96)*/
+                                    .forward(96)
                                 //tape #3
                                     /*.lineToLinearHeading(new Pose2d(-36,-36,Math.toRadians(0)))
                                     //place pixel on tape
                                     .lineToLinearHeading(new Pose2d(-36,-12,Math.toRadians(0)))
                                     .forward(72)*/
 
-                                /*.lineToLinearHeading(new Pose2d(36,-36,Math.toRadians(0)))
+                                .lineToLinearHeading(new Pose2d(36,-36,Math.toRadians(0)))
                                 .lineToLinearHeading(new Pose2d(36,-12,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,-36,Math.toRadians(180)))
@@ -174,7 +174,7 @@ public class MeepMeepField {
                                 .lineToLinearHeading(new Pose2d(36,-12,Math.toRadians(180)))
                                 .forward(96)
                                 .lineToLinearHeading(new Pose2d(-60,-36,Math.toRadians(180)))
-                                .build()*/
+                                .build()
 
 
 
