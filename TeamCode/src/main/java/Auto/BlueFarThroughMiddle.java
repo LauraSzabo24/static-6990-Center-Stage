@@ -33,7 +33,7 @@ public class BlueFarThroughMiddle extends LinearOpMode {
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch Play to start OpMode");
         telemetry.update();
-        waitForStart();
+         
 
         if (opModeIsActive()) {
             while (opModeIsActive() && !recognizedThing.equals("prop")) {

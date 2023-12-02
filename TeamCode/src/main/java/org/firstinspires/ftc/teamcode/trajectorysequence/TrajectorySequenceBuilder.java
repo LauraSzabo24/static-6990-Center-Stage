@@ -181,7 +181,7 @@ public class TrajectorySequenceBuilder {
     }
 
     public TrajectorySequenceBuilder forward(double distance) {
-        return addPath(() -> currentTrajectoryBuilder.forward(distance, currentVelConstraint, currentAccelConstraint));
+        return addPath(() -> currentTrajectoryBuilder.forward(distance*0.9828, currentVelConstraint, currentAccelConstraint));
     }
 
     public TrajectorySequenceBuilder forward(
