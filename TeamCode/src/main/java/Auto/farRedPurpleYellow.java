@@ -64,7 +64,7 @@ public class farRedPurpleYellow extends LinearOpMode {
 
 
         //TRAJECTORIES (left/right in robot perspective)
-        Pose2d startPose = new Pose2d(0, 0, Math.toRadians(-90));
+        Pose2d startPose = new Pose2d(-14, 0, Math.toRadians(-90));
         drive.setPoseEstimate(startPose);
 
 
@@ -81,20 +81,26 @@ public class farRedPurpleYellow extends LinearOpMode {
                 .forward(96/3)
                 .build();
         TrajectorySequence leftPurple = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(0,-32,Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(0,-13.5,Math.toRadians(-90)))
+                //.lineToLinearHeading(new Pose2d(-22,-37,Math.toRadians(0)))
                 //purple pixel
-                .addTemporalMarker(1, () -> {
+                .addTemporalMarker(0.8, () -> {
                     intakeMotor.setPower(-0.7);
                 })
-                .addTemporalMarker(3, () -> {
+                .addTemporalMarker(1.8, () -> {
                     intakeMotor.setPower(0);
                 })
-                .splineToLinearHeading(new Pose2d(15,-36,Math.toRadians(0)), Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(25,-52,Math.toRadians(0)), Math.toRadians(0))
-                .back(70)
+                .strafeLeft(8)
+                .build();
+
+        TrajectorySequence main = drive.trajectorySequenceBuilder(leftPurple.end())
+
+                .lineToLinearHeading(new Pose2d(0,-46, Math.toRadians(0)))
+                //.splineToLinearHeading(new Pose2d(25,-52,Math.toRadians(0)), Math.toRadians(0))
+                //.back(70)
 
                 //yellow pixel
-                .lineToLinearHeading(new Pose2d(-84,-32,Math.toRadians(0)))
+                /*.lineToLinearHeading(new Pose2d(-84,-32,Math.toRadians(0)))
                 .addTemporalMarker(8, () -> {
                     armLeftServo.setPosition(0);
                     armRightServo.setPosition(1);
@@ -128,7 +134,7 @@ public class farRedPurpleYellow extends LinearOpMode {
                 .strafeRight(24)
                 .back(8)
 
-                .lineToLinearHeading(new Pose2d(0,0,Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(0,0,Math.toRadians(-90)))*/
                 .build();
 
 
@@ -162,5 +168,6 @@ public class farRedPurpleYellow extends LinearOpMode {
         }*/
 
         drive.followTrajectorySequence(leftPurple);
+        drive.followTrajectorySequence(main);
     }
 }

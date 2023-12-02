@@ -432,13 +432,13 @@ public class TetrisLessTele extends OpMode {
             y1Pressed = false;
             y1Released = false;
             intakeLiftInHome = false;
-            intakeLiftServo.setPosition(1);
+            intakeLiftServo.setPosition(0.75);
         }
         if(y1Released && !intakeLiftInHome) {
             y1Pressed = false;
             y1Released = false;
             intakeLiftInHome = true;
-            intakeLiftServo.setPosition(0);
+            intakeLiftServo.setPosition(0.25);
         }
 
         //intake spinner sucking vacuum cleaner thing
