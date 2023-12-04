@@ -1,14 +1,14 @@
-package TeleOp;
+package Ancient.Testers;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.IMU;
 
 import Auto.Mailbox;
 
 @TeleOp
-public class tester extends LinearOpMode {
+@Disabled
+public class FieldCentricTester extends LinearOpMode {
     @Override
     public void runOpMode()
     {

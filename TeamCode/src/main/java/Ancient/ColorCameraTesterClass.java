@@ -1,6 +1,7 @@
-package TeleOp;
+package Ancient;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -9,8 +10,10 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import Camera.PropDetectorRED;
+import TeleOp.ColorDetector;
 
 @Autonomous
+@Disabled
 public class ColorCameraTesterClass extends LinearOpMode {
     OpenCvCamera cam;
     @Override

@@ -14,13 +14,12 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import Camera.PropDetectorRED;
-import Auto.Mailbox;
 
 @Autonomous
-public class farRedPurpleYellow extends LinearOpMode {
+public class RedFar_3_PY_1W_3 extends LinearOpMode {
     OpenCvCamera cam;
     private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight, intakeMotor;
-    private Servo clawServo, armLeftServo, armRightServo;
+    private Servo clawServo, armLeftServo, armRightServo, intakeLift;
     @Override
     public void runOpMode() throws InterruptedException {
         int cameraMonitorViewId = hardwareMap.appContext
@@ -57,6 +56,7 @@ public class farRedPurpleYellow extends LinearOpMode {
         clawServo = hardwareMap.get(Servo.class, "claw");
         armRightServo = hardwareMap.get(Servo.class, "armRightServo");
         armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
+        intakeLift = hardwareMap.get(Servo.class, "intakeLiftServo");
 
 
         //TRAJECTORIES (left/right in robot perspective)
@@ -66,31 +66,80 @@ public class farRedPurpleYellow extends LinearOpMode {
 
         //purple pixel
         TrajectorySequence rightPurple = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(0,-36,Math.toRadians(180)))
-                .lineToLinearHeading(new Pose2d(0,-30,Math.toRadians(0)))
-                .forward(72/3)
-                .build();
-        TrajectorySequence centerPurple = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(0,-36,Math.toRadians(90)))
-                .lineToLinearHeading(new Pose2d(-16,-36, Math.toRadians(90)))
-                .lineToLinearHeading(new Pose2d(-16,-30))
-                .forward(96/3)
-                .build();
-        TrajectorySequence leftPurple = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(0,-5,Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(-6,-19,Math.toRadians(-90)))
                 //.lineToLinearHeading(new Pose2d(-22,-37,Math.toRadians(0)))
                 //purple pixel
                 .addTemporalMarker(0.8, () -> {
+                    intakeLift.setPosition(0.75);
                     intakeMotor.setPower(-0.7);
                 })
-                .addTemporalMarker(1.8, () -> {
+                .addTemporalMarker(2, () -> {
                     intakeMotor.setPower(0);
+                    intakeLift.setPosition(0.25);
                 })
 
-                .lineToLinearHeading(new Pose2d(0,-46, Math.toRadians(0)))
-                .lineToLinearHeading(new Pose2d(0,-30, Math.toRadians(90)))
-                .lineToLinearHeading(new Pose2d(0,-46, Math.toRadians(180)))
-                .lineToLinearHeading(new Pose2d(0,-30, Math.toRadians(270)))
+                .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
+                .addDisplacementMarker(() -> {
+                    //mailbox
+                    Mailbox mail =  new Mailbox();
+                    mail.setAutoEnd(Math.toDegrees(drive.getExternalHeading()));
+                })
+                .build();
+        TrajectorySequence centerPurple = drive.trajectorySequenceBuilder(startPose)
+                .lineToLinearHeading(new Pose2d(-6,-19,Math.toRadians(-90)))
+                //.lineToLinearHeading(new Pose2d(-22,-37,Math.toRadians(0)))
+                //purple pixel
+                .addTemporalMarker(0.8, () -> {
+                    intakeLift.setPosition(0.75);
+                    intakeMotor.setPower(-0.7);
+                })
+                .addTemporalMarker(2, () -> {
+                    intakeMotor.setPower(0);
+                    intakeLift.setPosition(0.25);
+                })
+
+                .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
+                .addDisplacementMarker(() -> {
+                    //mailbox
+                    Mailbox mail =  new Mailbox();
+                    mail.setAutoEnd(Math.toDegrees(drive.getExternalHeading()));
+                })
+                .build();
+        TrajectorySequence leftPurple = drive.trajectorySequenceBuilder(startPose)
+                .lineToLinearHeading(new Pose2d(-6,-19,Math.toRadians(-90)))
+                //purple pixel
+                .addDisplacementMarker(() -> {
+                    intakeLift.setPosition(0.75);
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(-0.7);
+                    }
+                })
+                .addTemporalMarker(3, () -> {
+                    intakeMotor.setPower(0);
+                    intakeLift.setPosition(0.25);
+                })
+
+                //white pixel
+                .strafeRight(19)
+                .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0.7);
+                    }
+                })
+                .forward(5)
+                .back(10)
+                .addDisplacementMarker(() -> {
+                    intakeLift.setPosition(0.75);
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0);
+                    }
+                    intakeLift.setPosition(0.25);
+                })
+
+                //yellow pixel
+
+
                 .addDisplacementMarker(() -> {
                     //mailbox
                     Mailbox mail =  new Mailbox();

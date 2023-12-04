@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous
-public class basicParking extends LinearOpMode {
+public class Meet1Parking extends LinearOpMode {
 
     private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight, intakeMotor;
     private Servo intakeLiftServo;
@@ -36,33 +36,20 @@ public class basicParking extends LinearOpMode {
         waitForStart();
 
         //turns on
+        motorFrontLeft.setPower(0.5);
+        motorBackLeft.setPower(-0.5);
+        motorFrontRight.setPower(-0.5);
+        motorBackRight.setPower(0.5);
+        sleep(400);
         motorFrontLeft.setPower(-0.5);
         motorBackLeft.setPower(-0.5);
         motorFrontRight.setPower(-0.5);
         motorBackRight.setPower(-0.5);
-        sleep(2000);
+        sleep(8000); //2000
         motorFrontLeft.setPower(0);
         motorBackLeft.setPower(0);
         motorFrontRight.setPower(0);
         motorBackRight.setPower(0);
-        /*motorFrontLeft.setPower(-0.5);
-        motorBackLeft.setPower(-0.5);
-        motorFrontRight.setPower(-0.5);
-        motorBackRight.setPower(-0.5);
-        sleep(800);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        intakeLiftServo.setPosition(1);
-        intakeMotor.setPower(-0.8);
-        sleep(1000);
-        intakeMotor.setPower(0);
-        motorFrontLeft.setPower(-0.5);
-        motorBackLeft.setPower(0.5);
-        motorFrontRight.setPower(0.5);
-        motorBackRight.setPower(-0.5);
-        sleep(3000);*/
     }
 
 }

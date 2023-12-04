@@ -3,6 +3,7 @@ package TeleOp;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -29,6 +30,7 @@ import Camera.PropDetectorRED;
  */
 @Config
 @TeleOp
+@Disabled
 public class MainTeleOp extends LinearOpMode {
     //Camera
     OpenCvCamera colorCam;

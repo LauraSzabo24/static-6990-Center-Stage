@@ -1,4 +1,4 @@
-package Auto;
+package Ancient.Testers;
 
 import androidx.annotation.Nullable;
 
@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.drive.DriveSignal;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -20,6 +21,7 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.sequencesegment.Sequenc
 
 @Config
 @TeleOp(name = "PID Test")
+@Disabled
 public class PIDController extends LinearOpMode {
 
     DcMotorEx motor1;
