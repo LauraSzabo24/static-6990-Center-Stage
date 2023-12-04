@@ -1,12 +1,9 @@
 package Auto;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -17,8 +14,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import Camera.PropDetectorRED;
-import Camera.PropDetectorBLUE;
-import Camera.AprilTagDetectionPipeline;
+import Auto.Mailbox;
 
 @Autonomous
 public class farRedPurpleYellow extends LinearOpMode {
@@ -81,7 +77,7 @@ public class farRedPurpleYellow extends LinearOpMode {
                 .forward(96/3)
                 .build();
         TrajectorySequence leftPurple = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(0,-13.5,Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(0,-5,Math.toRadians(-90)))
                 //.lineToLinearHeading(new Pose2d(-22,-37,Math.toRadians(0)))
                 //purple pixel
                 .addTemporalMarker(0.8, () -> {
@@ -90,12 +86,22 @@ public class farRedPurpleYellow extends LinearOpMode {
                 .addTemporalMarker(1.8, () -> {
                     intakeMotor.setPower(0);
                 })
-                .strafeLeft(8)
-                .build();
-
-        TrajectorySequence main = drive.trajectorySequenceBuilder(leftPurple.end())
 
                 .lineToLinearHeading(new Pose2d(0,-46, Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(0,-30, Math.toRadians(90)))
+                .lineToLinearHeading(new Pose2d(0,-46, Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(0,-30, Math.toRadians(270)))
+                .addDisplacementMarker(() -> {
+                    //mailbox
+                    Mailbox mail =  new Mailbox();
+                    mail.setAutoEnd(Math.toDegrees(drive.getExternalHeading()));
+                })
+                .build();
+
+        /*TrajectorySequence main = drive.trajectorySequenceBuilder(leftPurple.end())
+
+                .lineToLinearHeading(new Pose2d(0,-46, Math.toRadians(0)))
+                .back(1)
                 //.splineToLinearHeading(new Pose2d(25,-52,Math.toRadians(0)), Math.toRadians(0))
                 //.back(70)
 
@@ -134,8 +140,8 @@ public class farRedPurpleYellow extends LinearOpMode {
                 .strafeRight(24)
                 .back(8)
 
-                .lineToLinearHeading(new Pose2d(0,0,Math.toRadians(-90)))*/
-                .build();
+                .lineToLinearHeading(new Pose2d(0,0,Math.toRadians(-90)))
+                .build();*/
 
 
 
@@ -168,6 +174,12 @@ public class farRedPurpleYellow extends LinearOpMode {
         }*/
 
         drive.followTrajectorySequence(leftPurple);
-        drive.followTrajectorySequence(main);
+        //drive.followTrajectorySequence(main);
+
+        //mailbox
+        Mailbox mail =  new Mailbox();
+        mail.setAutoEnd(Math.toDegrees(drive.getExternalHeading()));
+
     }
 }
+

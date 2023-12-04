@@ -12,12 +12,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+
+import Auto.Mailbox;
 
 //copied last 11/7/2023 12:47 am
 
 @TeleOp
-public class TetrisLessTele extends OpMode {
+public class BlueTetrisLessTele extends OpMode {
     //drivetrain
     IMU imu;
 
@@ -108,6 +109,10 @@ public class TetrisLessTele extends OpMode {
     private boolean upReleased;
     private boolean boxRow;
 
+    //mail
+    IMU.Parameters parameters;
+    String dirTestIMU;
+
     public void driverAInitialize()
     {
         //modes
@@ -162,13 +167,14 @@ public class TetrisLessTele extends OpMode {
 
         //imu
         // Retrieve the IMU from the hardware map
+        Mailbox mail =  new Mailbox();
         imu = hardwareMap.get(IMU.class, "imu");
-        // Adjust the orientation parameters to match your robot
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+        parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-            imu.initialize(parameters);
+        imu.initialize(parameters);
 
         //intake outake servos
         armInHome = true;
@@ -258,6 +264,9 @@ public class TetrisLessTele extends OpMode {
     @Override
     public void loop()
     {
+        //test
+        telemetry.addData("imu direction" + dirTestIMU, Mailbox.autoEndHead);
+
         //ONLY FOR MEET ONE
         emergencyMode = true;
 
@@ -427,7 +436,7 @@ public class TetrisLessTele extends OpMode {
         }
 
         //intake lift here
-        if(y1Released && intakeLiftInHome)
+        /*if(y1Released && intakeLiftInHome)
         {
             y1Pressed = false;
             y1Released = false;
@@ -439,7 +448,7 @@ public class TetrisLessTele extends OpMode {
             y1Released = false;
             intakeLiftInHome = true;
             intakeLiftServo.setPosition(0.25);
-        }
+        }*/
 
         //intake spinner sucking vacuum cleaner thing
         if(gamepad1.a)
@@ -467,26 +476,36 @@ public class TetrisLessTele extends OpMode {
     }
     public void drive()
     {
+        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x;
+        double rx = gamepad1.right_stick_x;
+
+        // This button choice was made so that it is hard to hit on accident,
+        // it can be freely changed based on preference.
+        // The equivalent button is start on Xbox-style controllers.
         if (gamepad1.options) {
             imu.resetYaw();
         }
 
-        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        //strange math that somehow works
+        double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270));
 
-        double y = gamepad1.left_stick_y; // Remember, Y stick value is reversed
-        double x = -gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing (1.1)
-        double rx = gamepad1.right_stick_x; //rotation, fine
-
+        telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
+        telemetry.addData("bot value", Math.toDegrees(botHeading));
         // Rotate the movement direction counter to the bot's rotation
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
 
+        rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;
         double backLeftPower = (rotY - rotX + rx) / denominator;
         double frontRightPower = (rotY - rotX - rx) / denominator;
         double backRightPower = (rotY + rotX - rx) / denominator;
-
         motorFrontLeft.setPower(frontLeftPower/2);
         motorBackLeft.setPower(backLeftPower/2);
         motorFrontRight.setPower(frontRightPower/2);
@@ -555,8 +574,8 @@ public class TetrisLessTele extends OpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = true;
-            armLeftServo.setPosition(0.3);
-            armRightServo.setPosition(0.7);
+            armLeftServo.setPosition(0.2);
+            armRightServo.setPosition(0.8);
         }
 
         //push pop (not for meet 1)
