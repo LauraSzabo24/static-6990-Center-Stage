@@ -574,24 +574,9 @@ public class BlueTetrisLessTele extends OpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = true;
-            armLeftServo.setPosition(0.2);
-            armRightServo.setPosition(0.8);
+            armLeftServo.setPosition(-0.6);
+            armRightServo.setPosition(1.4);
         }
-
-        //push pop (not for meet 1)
-        /*if(x2Released && pushPopInHome)
-        {
-            x2Released = false;
-            x2Pressed = false;
-            pushPopInHome = false;
-            //pushPopServo.setPosition(0.5);
-        } else if (x2Released)
-        {
-            x2Released = false;
-            x2Pressed = false;
-            pushPopInHome = true;
-            //pushPopServo.setPosition(0);
-        }*/
 
         //claw servo
         if(a2Released && clawInHome)
@@ -605,7 +590,7 @@ public class BlueTetrisLessTele extends OpMode {
             a2Released = false;
             a2Pressed = false;
             clawInHome = true;
-            clawServo.setPosition(0.8);
+            clawServo.setPosition(0.2);
         }
 
         //telemetry CAN DELETE LATERRRRR
