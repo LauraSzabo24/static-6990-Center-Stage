@@ -45,7 +45,7 @@ public class BlueTetrisLessTele extends OpMode {
     private boolean confirmA;
     private boolean manualOn;
     private boolean emergencyMode;
-    private Servo clawServo, armLeftServo,armRightServo, pushPopServo, intakeLiftServo;
+    private Servo clawServo, armLeftServo,armRightServo, airplaneServo, intakeLiftServo;
     DcMotorEx intakeMotor;
 
     //mecanum drive stuff
@@ -117,7 +117,7 @@ public class BlueTetrisLessTele extends OpMode {
     {
         //modes
         manualOn = true;
-        emergencyMode = false;
+        emergencyMode = true; //false for tetris
         confirmA = false;
 
         //emergency mode/ button controls
@@ -184,15 +184,16 @@ public class BlueTetrisLessTele extends OpMode {
         clawServo = hardwareMap.get(Servo.class, "claw");
         armRightServo = hardwareMap.get(Servo.class, "armRightServo");
         armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
-        //pushPopServo = hardwareMap.get(Servo.class, "pushPopServo");
+        airplaneServo = hardwareMap.get(Servo.class, "airplaneServo");
         intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");
 
         //intake motor
         intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
 
-        //arm into position
+        //start positions
         armLeftServo.setPosition(0.99);
         armRightServo.setPosition(0.01);
+
     }
     public void driverBInitialize()
     {
@@ -236,21 +237,9 @@ public class BlueTetrisLessTele extends OpMode {
     {
         //color camera stuff goes in here
     }
-    public void pidInit()
-    {
-       /* SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        packet = new TelemetryPacket();
-        dashboard.setTelemetryTransmissionInterval(25);
-        drive = hardwareMap.get(SampleMecanumDrive.class, "motor");
-        drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        targetPosition = 0;*/
-    }
     @Override
     public void init()
     {
-        pidInit();
         driverAInitialize();
         driverBInitialize();
         cameraInit();
@@ -267,7 +256,7 @@ public class BlueTetrisLessTele extends OpMode {
         //test
         telemetry.addData("imu direction" + dirTestIMU, Mailbox.autoEndHead);
 
-        //ONLY FOR MEET ONE
+        //ONLY FOR MEET ONE/TWO
         emergencyMode = true;
 
         //button update
@@ -303,36 +292,6 @@ public class BlueTetrisLessTele extends OpMode {
             updateDriverBButtons();
             emergencyModeControls();
         }
-
-        //PID
-        /*double currentSlidePos = slideMotorLeft.getCurrentPosition();
-        if(gamepad2.a) {
-            targetPosition = 5000;
-        }
-        else{
-            targetPosition = currentSlidePos;
-        }
-        if(gamepad2.b){
-            targetPosition = 0;
-        }
-        else{
-            targetPosition = currentSlidePos;
-        }
-        //targetPosition = currentSlidePos; remove ifs above
-        double power = returnPower(targetPosition, currentSlidePos);
-        packet.put("power", power);
-        packet.put("position", currentSlidePos);
-        packet.put("error", lastError);
-        packet.put("targetPosition", targetPosition);
-        telemetry.addData("power", power);
-        telemetry.addData("position", currentSlidePos);
-        telemetry.addData("error", lastError);
-        slideMotorLeft.setPower(power);
-        slideMotorRight.setPower(power);
-        telemetry.update();
-
-        dashboard.sendTelemetryPacket(packet);*/
-
 
         //Normal Driver A Controls
         if(!emergencyMode && manualOn)
@@ -395,20 +354,6 @@ public class BlueTetrisLessTele extends OpMode {
         telemetry.addData("servo position in ", armLeftServo.getPosition());
         telemetry.update();
     }
-
-    //PIDDDDDDDDDDDDDD
-    public double returnPower(double reference, double state){
-        double error = reference - state;
-        double derivative = (error-lastError)/timer.seconds();
-        lastError = error;
-
-        timer.reset();
-
-        double output = (error* Kp) +  (derivative * Kd);
-        return output;
-    }
-
-
 
     //DRIVER A NORMAL CONTROLS FROM HEREEEE
     public void updateDriverAControls()
@@ -574,9 +519,24 @@ public class BlueTetrisLessTele extends OpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = true;
-            armLeftServo.setPosition(-0.6);
-            armRightServo.setPosition(1.4);
+            armLeftServo.setPosition(0.2);
+            armRightServo.setPosition(0.8);
         }
+
+        //push pop (not for meet 1)
+        /*if(x2Released && pushPopInHome)
+        {
+            x2Released = false;
+            x2Pressed = false;
+            pushPopInHome = false;
+            //pushPopServo.setPosition(0.5);
+        } else if (x2Released)
+        {
+            x2Released = false;
+            x2Pressed = false;
+            pushPopInHome = true;
+            //pushPopServo.setPosition(0);
+        }*/
 
         //claw servo
         if(a2Released && clawInHome)
@@ -590,7 +550,13 @@ public class BlueTetrisLessTele extends OpMode {
             a2Released = false;
             a2Pressed = false;
             clawInHome = true;
-            clawServo.setPosition(0.2);
+            clawServo.setPosition(0.8);
+        }
+
+        //airplane
+        if(gamepad2.left_bumper && gamepad2.right_bumper)
+        {
+            airplaneServo.setPosition(0.2);
         }
 
         //telemetry CAN DELETE LATERRRRR

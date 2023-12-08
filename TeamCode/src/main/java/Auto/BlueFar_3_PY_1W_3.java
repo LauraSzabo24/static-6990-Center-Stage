@@ -13,6 +13,7 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import Camera.PropDetectorBLUE;
 import Camera.PropDetectorRED;
 
 @Autonomous
@@ -29,8 +30,8 @@ public class BlueFar_3_PY_1W_3 extends LinearOpMode {
         WebcamName camera = hardwareMap.get(WebcamName.class, "camera");
         OpenCvCamera cam = OpenCvCameraFactory.getInstance().createWebcam(camera, cameraMonitorViewId);
 
-        PropDetectorRED redDetector = new PropDetectorRED(telemetry);
-        cam.setPipeline(redDetector);
+        PropDetectorBLUE blueDetector = new PropDetectorBLUE(telemetry);
+        cam.setPipeline(blueDetector);
         cam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
             @Override
@@ -65,115 +66,65 @@ public class BlueFar_3_PY_1W_3 extends LinearOpMode {
 
 
         //purple pixel
-       /* TrajectorySequence rightPurple = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-6,-19,Math.toRadians(-90)))
-                //.lineToLinearHeading(new Pose2d(-22,-37,Math.toRadians(0)))
-                //purple pixel
-                .addTemporalMarker(0.8, () -> {
-                    intakeLift.setPosition(0.75);
-                    intakeMotor.setPower(-0.7);
-                })
-                .addTemporalMarker(2, () -> {
-                    intakeMotor.setPower(0);
-                    intakeLift.setPosition(0.25);
-                })
+        TrajectorySequence right = drive.trajectorySequenceBuilder(startPose)
+                .forward(14.5)
+                .strafeLeft(15)
 
-                .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
-                .addDisplacementMarker(() -> {
-                    //mailbox
-                    Mailbox mail =  new Mailbox();
-                    mail.setAutoEnd(Math.toDegrees(drive.getExternalHeading()));
-                })
-                .build();
-        TrajectorySequence centerPurple = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-6,-19,Math.toRadians(-90)))
-
-                //purple pixel
-                .addDisplacementMarker(() -> {
-                    intakeLift.setPosition(0.75);
-                    for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(-0.7);
-                    }
-                })
-                .addTemporalMarker(3, () -> {
-                    intakeMotor.setPower(0);
-                    intakeLift.setPosition(0.25);
-                })
-
-                //white pixel
-                .strafeRight(19)
-                .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
-                .addDisplacementMarker( () -> {
-                    for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(0.7);
-                    }
-                })
-                .forward(5)
-                .back(10)
-                .addDisplacementMarker(() -> {
-                    intakeLift.setPosition(0.75);
-                    for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(0);
-                    }
-                    intakeLift.setPosition(0.25);
-                })
-                .build();*/
-
-        TrajectorySequence leftPurple = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-6,16.5,Math.toRadians(90)))
-                //.lineToLinearHeading(new Pose2d(-6,-16,Math.toRadians(90)))
                 //purple pixel
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeLift.setPosition(0.75);
+                    }
+                    for(int i=0; i<100; i++) {
                         intakeMotor.setPower(-0.7);
-                        /*armLeftServo.setPosition(0);
-                        armRightServo.setPosition(1);*/
                     }
                 })
                 .addTemporalMarker(3, () -> {
                     for(int i=0; i<100; i++) {
-                        /*clawServo.setPosition(0.8);
-                        armLeftServo.setPosition(1);
-                        armRightServo.setPosition(0);*/
                         intakeMotor.setPower(0);
+                    }
+                    for(int i=0; i<100; i++) {
                         intakeLift.setPosition(0.25);
                     }
                 })
 
                 //white pixel
-                .strafeLeft(19)
+                .strafeRight(19)
                 .lineToLinearHeading(new Pose2d(0,53, Math.toRadians(0)))
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(0.4);
+                        intakeMotor.setPower(0.5);
                     }
                 })
                 .forward(7)
                 .waitSeconds(2)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.25);
+                    }
+                    for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0.7);
                     }
                 })
-                .back(5)
+                .back(15)
+
                 .forward(5)
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.75);
+                        intakeLift.setPosition(0.25);
                     }
                     for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.25);
                         clawServo.setPosition(0.45);
                     }
                 })
-                .back(115)
+                .back(110)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
                 })
                 .strafeRight(35)
+
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         armLeftServo.setPosition(0.2);
@@ -187,11 +138,13 @@ public class BlueFar_3_PY_1W_3 extends LinearOpMode {
                     }
                 })
                 .forward(5)
-                .strafeLeft(6)
+                .strafeRight(6)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         armLeftServo.setPosition(1);
                         armRightServo.setPosition(0);
+                    }
+                    for(int i=0; i<100; i++) {
                         clawServo.setPosition(0.45);
                     }
                 })
@@ -212,21 +165,211 @@ public class BlueFar_3_PY_1W_3 extends LinearOpMode {
 
                 .build();
 
-        /*TrajectorySequence main = drive.trajectorySequenceBuilder(leftPurple.end())
-                //yellow pixel
+
+        //CENTERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+
+
+        TrajectorySequence center = drive.trajectorySequenceBuilder(startPose)
+                .strafeRight(30)
+                .lineToLinearHeading(new Pose2d(30,30,Math.toRadians(180)))
+                //purple pixel
                 .addDisplacementMarker(() -> {
-                    //mailbox
-                    Mailbox mail =  new Mailbox();
-                    mail.setAutoEnd(Math.toDegrees(drive.getExternalHeading()));
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.75);
+                    }
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(-0.7);
+                    }
+                })
+                .addTemporalMarker(3, () -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0);
+                    }
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.25);
+                    }
                 })
 
+                //white pixel
+                .lineToLinearHeading(new Pose2d(0,53, Math.toRadians(0)))
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0.5);
+                    }
+                })
+                .forward(7)
+                .waitSeconds(2)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.25);
+                    }
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0.7);
+                    }
+                })
+                .back(15)
 
-                .build();*/
+                .forward(5)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.25);
+                    }
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0.45);
+                    }
+                })
+                .back(110)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0);
+                    }
+                })
+                .strafeRight(35)
+
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        armLeftServo.setPosition(0.2);
+                        armRightServo.setPosition(0.8);
+                    }
+                })
+                .back(10)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0.8);
+                    }
+                })
+                .forward(5)
+                .strafeRight(6)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        armLeftServo.setPosition(1);
+                        armRightServo.setPosition(0);
+                    }
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0.45);
+                    }
+                })
+                .waitSeconds(1)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        armLeftServo.setPosition(0.2);
+                        armRightServo.setPosition(0.8);
+                    }
+                })
+                .waitSeconds(0.5)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0.8);
+                    }
+                })
+                .back(5)
+
+                .build();
+
+
+        //LEFTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+
+        TrajectorySequence left = drive.trajectorySequenceBuilder(startPose)
+                .lineToLinearHeading(new Pose2d(-6,16.5,Math.toRadians(90)))
+                //purple pixel
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.75);
+                    }
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(-0.7);
+                    }
+                })
+                .addTemporalMarker(3, () -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0);
+                    }
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.25);
+                    }
+                })
+
+                //white pixel
+                .strafeLeft(19)
+                .lineToLinearHeading(new Pose2d(0,53, Math.toRadians(0)))
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0.5);
+                    }
+                })
+                .forward(7)
+                .waitSeconds(2)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.25);
+                    }
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0.7);
+                    }
+                })
+                .back(15)
+
+                .forward(5)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.25);
+                    }
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0.45);
+                    }
+                })
+                .back(110)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0);
+                    }
+                })
+                .strafeRight(35)
+
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        armLeftServo.setPosition(0.2);
+                        armRightServo.setPosition(0.8);
+                    }
+                })
+                .back(10)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0.8);
+                    }
+                })
+                .forward(5)
+                .strafeRight(6)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        armLeftServo.setPosition(1);
+                        armRightServo.setPosition(0);
+                    }
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0.45);
+                    }
+                })
+                .waitSeconds(1)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        armLeftServo.setPosition(0.2);
+                        armRightServo.setPosition(0.8);
+                    }
+                })
+                .waitSeconds(0.5)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0.8);
+                    }
+                })
+                .back(5)
+
+                .build();
 
 
 
         waitForStart();
-        PropDetectorRED.Location place = redDetector.getLocation();
+        PropDetectorBLUE.Location place = blueDetector.getLocation();
         armLeftServo.setPosition(1);
         armRightServo.setPosition(0);
         clawServo.setPosition(0.5);
@@ -236,25 +379,22 @@ public class BlueFar_3_PY_1W_3 extends LinearOpMode {
 
         //DRIVING
         drive.setPoseEstimate(startPose);
-        /*if(place != null) {
+        if(place != null) {
             switch (place) {
                 case NOT_FOUND:
-                    drive.followTrajectorySequence(rightPurple);
+                    drive.followTrajectorySequence(right);
                     break;
                 case CENTER:
-                    drive.followTrajectorySequence(centerPurple);
+                    drive.followTrajectorySequence(center);
                     break;
                 case LEFT:
-                    drive.followTrajectorySequence(leftPurple);
+                    drive.followTrajectorySequence(left);
 
             }
         }
         else{
-            drive.followTrajectorySequence(rightPurple);
-        }*/
-
-        drive.followTrajectorySequence(leftPurple);
-        //drive.followTrajectorySequence(main);
+            drive.followTrajectorySequence(right);
+        }
 
         //mailbox
         Mailbox mail =  new Mailbox();
@@ -262,4 +402,3 @@ public class BlueFar_3_PY_1W_3 extends LinearOpMode {
 
     }
 }
-

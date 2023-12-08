@@ -1,10 +1,11 @@
-package Camera;
+package Ancient.OldCamera;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
 import android.util.Size;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -25,6 +26,7 @@ import java.util.List;
 
 
 @Autonomous
+@Disabled
 public class PropRecognitionTest1 extends LinearOpMode
 {
 
