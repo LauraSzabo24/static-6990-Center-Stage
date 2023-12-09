@@ -18,9 +18,10 @@ import Auto.Mailbox;
 //copied last 11/7/2023 12:47 am
 
 @TeleOp
-public class BlueTetrisLessTele extends OpMode {
+public class VariantRedTetris extends OpMode {
     //drivetrain
     IMU imu;
+    public boolean hanging;
 
     //PID material
     DcMotorEx slideMotorRight;
@@ -37,6 +38,8 @@ public class BlueTetrisLessTele extends OpMode {
 
     //DRIVER A material
     //toggles
+    private double speed;
+    private double multiply;
     private boolean armInHome;
     private boolean clawInHome;
     private boolean pushPopInHome;
@@ -115,10 +118,17 @@ public class BlueTetrisLessTele extends OpMode {
 
     public void driverAInitialize()
     {
+        //hang
+        hanging = false;
+
         //modes
         manualOn = true;
         emergencyMode = true; //false for tetris
         confirmA = false;
+
+        //drivetrain
+        speed = 2;
+        multiply = 1;
 
         //emergency mode/ button controls
         a1Pressed = false;
@@ -190,10 +200,9 @@ public class BlueTetrisLessTele extends OpMode {
         //intake motor
         intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
 
-        //start positions
+        //arm into position
         armLeftServo.setPosition(0.99);
         armRightServo.setPosition(0.01);
-
     }
     public void driverBInitialize()
     {
@@ -381,19 +390,22 @@ public class BlueTetrisLessTele extends OpMode {
         }
 
         //intake lift here
-        /*if(y1Released && intakeLiftInHome)
-        {
-            y1Pressed = false;
-            y1Released = false;
-            intakeLiftInHome = false;
-            intakeLiftServo.setPosition(0.75);
+        if(gamepad1.right_trigger> 0){
+            speed = 4;
         }
-        if(y1Released && !intakeLiftInHome) {
-            y1Pressed = false;
-            y1Released = false;
-            intakeLiftInHome = true;
-            intakeLiftServo.setPosition(0.25);
-        }*/
+        else {
+            speed = 2;
+        }
+
+        if(gamepad1.left_trigger> 0)
+        {
+            speed = 2;
+            multiply = 3;
+        }
+        else {
+            speed = 2;
+            multiply = 1;
+        }
 
         //intake spinner sucking vacuum cleaner thing
         if(gamepad1.a)
@@ -433,7 +445,9 @@ public class BlueTetrisLessTele extends OpMode {
         }
 
         //strange math that somehow works
-        double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270));
+        //double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(90));
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(90);
+
 
         telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
         telemetry.addData("bot value", Math.toDegrees(botHeading));
@@ -451,10 +465,10 @@ public class BlueTetrisLessTele extends OpMode {
         double backLeftPower = (rotY - rotX + rx) / denominator;
         double frontRightPower = (rotY - rotX - rx) / denominator;
         double backRightPower = (rotY + rotX - rx) / denominator;
-        motorFrontLeft.setPower(frontLeftPower/2);
-        motorBackLeft.setPower(backLeftPower/2);
-        motorFrontRight.setPower(frontRightPower/2);
-        motorBackRight.setPower(backRightPower/2);
+        motorFrontLeft.setPower(multiply * frontLeftPower/speed);
+        motorBackLeft.setPower(multiply * backLeftPower/speed);
+        motorFrontRight.setPower(multiply * frontRightPower/speed);
+        motorBackRight.setPower(multiply * backRightPower/speed);
         telemetry.addLine(String.format("setting motor powers to:"));
         telemetry.addData("frontLeft ", frontLeftPower);
         telemetry.addData("backLeft ", backLeftPower);
@@ -512,8 +526,8 @@ public class BlueTetrisLessTele extends OpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = false;
-            armLeftServo.setPosition(1);
-            armRightServo.setPosition(0);
+            armLeftServo.setPosition(0.95);
+            armRightServo.setPosition(0.05);
         }
         else if(y2Released) {
             y2Released = false;
@@ -524,19 +538,23 @@ public class BlueTetrisLessTele extends OpMode {
         }
 
         //push pop (not for meet 1)
-        /*if(x2Released && pushPopInHome)
+        if(x2Released && pushPopInHome)
         {
             x2Released = false;
             x2Pressed = false;
             pushPopInHome = false;
-            //pushPopServo.setPosition(0.5);
+
+            armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);
         } else if (x2Released)
         {
             x2Released = false;
             x2Pressed = false;
             pushPopInHome = true;
-            //pushPopServo.setPosition(0);
-        }*/
+
+            armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);
+        }
 
         //claw servo
         if(a2Released && clawInHome)
@@ -556,7 +574,19 @@ public class BlueTetrisLessTele extends OpMode {
         //airplane
         if(gamepad2.left_bumper && gamepad2.right_bumper)
         {
-            airplaneServo.setPosition(0.2);
+            airplaneServo.setPosition(0.5);
+        }
+
+
+        //hang
+        if(gamepad2.right_stick_button || gamepad2.left_stick_button)
+        {
+            hanging = true;
+        }
+        if(hanging)
+        {
+            slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);
         }
 
         //telemetry CAN DELETE LATERRRRR

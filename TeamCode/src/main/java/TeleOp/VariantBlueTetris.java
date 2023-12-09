@@ -18,9 +18,10 @@ import Auto.Mailbox;
 //copied last 11/7/2023 12:47 am
 
 @TeleOp
-public class BlueTetrisLessTele extends OpMode {
+public class VariantBlueTetris extends OpMode {
     //drivetrain
     IMU imu;
+    public boolean hanging;
 
     //PID material
     DcMotorEx slideMotorRight;
@@ -197,6 +198,9 @@ public class BlueTetrisLessTele extends OpMode {
     }
     public void driverBInitialize()
     {
+        //hang
+        hanging = false;
+
         outputArray = new String[12][13]; //original: 12 13 // new: 12 14
         cursorX = 1;
         cursorY = 10;
@@ -433,7 +437,8 @@ public class BlueTetrisLessTele extends OpMode {
         }
 
         //strange math that somehow works
-        double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270));
+        //double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270));
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270);
 
         telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
         telemetry.addData("bot value", Math.toDegrees(botHeading));
@@ -523,6 +528,8 @@ public class BlueTetrisLessTele extends OpMode {
             armRightServo.setPosition(1);
         }
 
+
+
         //push pop (not for meet 1)
         /*if(x2Released && pushPopInHome)
         {
@@ -557,6 +564,17 @@ public class BlueTetrisLessTele extends OpMode {
         if(gamepad2.left_bumper && gamepad2.right_bumper)
         {
             airplaneServo.setPosition(0.2);
+        }
+
+        //hang
+        if(gamepad2.right_stick_button || gamepad2.left_stick_button)
+        {
+            hanging = true;
+        }
+        if(hanging)
+        {
+            slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);
         }
 
         //telemetry CAN DELETE LATERRRRR

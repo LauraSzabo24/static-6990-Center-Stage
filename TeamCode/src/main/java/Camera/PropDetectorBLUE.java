@@ -21,12 +21,12 @@ public class PropDetectorBLUE extends OpenCvPipeline {
 
     //for reference only (0,0) in top left
     static final Rect SCREENSIZEBOX = new Rect( //make this the correct area
-            new Point(0, 0),
+            new Point(0, 60),
             new Point(320, 240));
 
     //actual boxes
     static final Rect LEFT_ROI = new Rect( //make this the correct area
-            new Point(14, 0),
+            new Point(14, 60),
             new Point(140, 120));
     static final Rect CENTER_ROI = new Rect( //make this the correct area
             new Point(143, 0),
@@ -69,7 +69,6 @@ public class PropDetectorBLUE extends OpenCvPipeline {
         Scalar highHSVRED = new Scalar(110, 255, 200);
 
         Core.inRange(mat, lowHSVRED, highHSVRED, mat);
-        Core.bitwise_not(mat, mat); //for red only
 
         Mat left = mat.submat(LEFT_ROI); //the area on the camera that would be the left prop if it's there
         Mat center = mat.submat(CENTER_ROI); //area on the camera that would be the right prop if it's there
@@ -94,12 +93,12 @@ public class PropDetectorBLUE extends OpenCvPipeline {
             telemetry.addData("Prop Location", "both center and left");
         }
         else if (propLeft) {
-            location = Location.LEFT;
-            telemetry.addData("Prop Location", "left");
-        }
-        else if(propCenter) {
             location = Location.CENTER;
             telemetry.addData("Prop Location", "center");
+        }
+        else if(propCenter) {
+            location = Location.LEFT;
+            telemetry.addData("Prop Location", "left");
         }
         else {
             location = Location.NOT_FOUND;

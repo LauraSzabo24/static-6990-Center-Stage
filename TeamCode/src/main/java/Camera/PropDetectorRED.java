@@ -26,10 +26,10 @@ public class PropDetectorRED extends OpenCvPipeline {
 
     //actual boxes
     static final Rect LEFT_ROI = new Rect( //make this the correct area
-            new Point(14, 0),
+            new Point(14, 40),
             new Point(140, 120));
     static final Rect CENTER_ROI = new Rect( //make this the correct area
-            new Point(200, 0), //143 0
+            new Point(200, 40), //143 0
             new Point(320, 120)); //282 100
     static double PERCENT_COLOR_THRESHOLD = 0.10;
 
@@ -88,19 +88,19 @@ public class PropDetectorRED extends OpenCvPipeline {
         telemetry.addData("Center percentage", Math.round(centerValue * 100) + "%");
 
         //is it there or is it not (true = it is there)
-        boolean propLeft = leftValue > PERCENT_COLOR_THRESHOLD;
-        boolean propCenter = centerValue > PERCENT_COLOR_THRESHOLD;
+        boolean propLeft = (leftValue > PERCENT_COLOR_THRESHOLD);
+        boolean propCenter = (centerValue > PERCENT_COLOR_THRESHOLD);
 
         if (propLeft && propCenter) { //if both are there (assume none are there)
             location = Location.NOT_FOUND;
             telemetry.addData("Prop Location", "both center and left");
         }
-        else if (propLeft) {
-            location = Location.LEFT;
+        else if (propLeft) { //Left
+            location = Location.LEFT; //LEFT
             telemetry.addData("Prop Location", "left");
         }
-        else if(propCenter) {
-            location = Location.CENTER;
+        else if(propCenter) { //Center
+            location = Location.CENTER; //CENTER
             telemetry.addData("Prop Location", "center");
         }
         else {

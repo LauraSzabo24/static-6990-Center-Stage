@@ -37,6 +37,8 @@ public class RedTetrisLessTele extends OpMode {
 
     //DRIVER A material
     //toggles
+    private double speed;
+    private double multiply;
     private boolean armInHome;
     private boolean clawInHome;
     private boolean pushPopInHome;
@@ -119,6 +121,10 @@ public class RedTetrisLessTele extends OpMode {
         manualOn = true;
         emergencyMode = true; //false for tetris
         confirmA = false;
+
+        //drivetrain
+        speed = 2;
+        multiply = 1;
 
         //emergency mode/ button controls
         a1Pressed = false;
@@ -380,19 +386,22 @@ public class RedTetrisLessTele extends OpMode {
         }
 
         //intake lift here
-        /*if(y1Released && intakeLiftInHome)
-        {
-            y1Pressed = false;
-            y1Released = false;
-            intakeLiftInHome = false;
-            intakeLiftServo.setPosition(0.75);
+        if(gamepad1.right_trigger> 0){
+            speed = 4;
         }
-        if(y1Released && !intakeLiftInHome) {
-            y1Pressed = false;
-            y1Released = false;
-            intakeLiftInHome = true;
-            intakeLiftServo.setPosition(0.25);
-        }*/
+        else {
+            speed = 2;
+        }
+
+        if(gamepad1.left_trigger> 0)
+        {
+            speed = 2;
+            multiply = 3;
+        }
+        else {
+            speed = 2;
+            multiply = 1;
+        }
 
         //intake spinner sucking vacuum cleaner thing
         if(gamepad1.a)
@@ -450,10 +459,10 @@ public class RedTetrisLessTele extends OpMode {
         double backLeftPower = (rotY - rotX + rx) / denominator;
         double frontRightPower = (rotY - rotX - rx) / denominator;
         double backRightPower = (rotY + rotX - rx) / denominator;
-        motorFrontLeft.setPower(frontLeftPower/2);
-        motorBackLeft.setPower(backLeftPower/2);
-        motorFrontRight.setPower(frontRightPower/2);
-        motorBackRight.setPower(backRightPower/2);
+        motorFrontLeft.setPower(multiply * frontLeftPower/speed);
+        motorBackLeft.setPower(multiply * backLeftPower/speed);
+        motorFrontRight.setPower(multiply * frontRightPower/speed);
+        motorBackRight.setPower(multiply * backRightPower/speed);
         telemetry.addLine(String.format("setting motor powers to:"));
         telemetry.addData("frontLeft ", frontLeftPower);
         telemetry.addData("backLeft ", backLeftPower);
@@ -511,31 +520,35 @@ public class RedTetrisLessTele extends OpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = false;
-            armLeftServo.setPosition(1);
-            armRightServo.setPosition(0);
+            armLeftServo.setPosition(0.95);
+            armRightServo.setPosition(0.05);
         }
         else if(y2Released) {
             y2Released = false;
             y2Pressed = false;
             armInHome = true;
-            armLeftServo.setPosition(0.2);
-            armRightServo.setPosition(0.8);
+            armLeftServo.setPosition(0);
+            armRightServo.setPosition(1);
         }
 
         //push pop (not for meet 1)
-        /*if(x2Released && pushPopInHome)
+        if(x2Released && pushPopInHome)
         {
             x2Released = false;
             x2Pressed = false;
             pushPopInHome = false;
-            //pushPopServo.setPosition(0.5);
+
+            armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);
         } else if (x2Released)
         {
             x2Released = false;
             x2Pressed = false;
             pushPopInHome = true;
-            //pushPopServo.setPosition(0);
-        }*/
+
+            armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);
+        }
 
         //claw servo
         if(a2Released && clawInHome)
@@ -543,13 +556,13 @@ public class RedTetrisLessTele extends OpMode {
             a2Released = false;
             a2Pressed = false;
             clawInHome = false;
-            clawServo.setPosition(0.5);
+            clawServo.setPosition(0);
         } else if (a2Released)
         {
             a2Released = false;
             a2Pressed = false;
             clawInHome = true;
-            clawServo.setPosition(0.8);
+            clawServo.setPosition(0.3);
         }
 
         //airplane
