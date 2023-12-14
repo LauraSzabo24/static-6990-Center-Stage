@@ -76,17 +76,17 @@ public class RedFar extends LinearOpMode {
                         intakeMotor.setPower(-0.7);
                     }
                 })
-                .addTemporalMarker(3, () -> {
-                    for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(0);
-                    }
-                    for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.25);
-                    }
-                })
 
                 .waitSeconds(1)
                 .back(16)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.25);
+                    }
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0);
+                    }
+                })
                 //yellow pixel
                 .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
                 .back(100)
@@ -137,12 +137,12 @@ public class RedFar extends LinearOpMode {
                     }
                 })
                 .waitSeconds(1)
-                .addTemporalMarker(3, () -> {
-                    for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(0);
-                    }
+                .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeLift.setPosition(0.25);
+                    }
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0);
                     }
                 })
 
@@ -193,17 +193,17 @@ public class RedFar extends LinearOpMode {
                         intakeMotor.setPower(-0.7);
                     }
                 })
-                .addTemporalMarker(3, () -> {
-                    for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(0);
-                    }
-                    for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.25);
-                    }
-                })
 
                 //yellow pixel
                 .strafeRight(21)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeLift.setPosition(0.25);
+                    }
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0);
+                    }
+                })
                 .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
                 .back(100)
                 .addDisplacementMarker( () -> {

@@ -14,4 +14,5 @@ public class Mailbox
     public double getAutoEnd(){
         return autoEndHead;
     }
+    public static Pose2d currentPose = new Pose2d();
 }

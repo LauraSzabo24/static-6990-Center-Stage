@@ -1,4 +1,4 @@
-package TeleOp;
+package Ancient;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -18,11 +18,10 @@ import Auto.Mailbox;
 //copied last 11/7/2023 12:47 am
 
 @TeleOp
-public class RedTetrisLessTele extends OpMode {
+public class VariantRedTetris extends OpMode {
     //drivetrain
     IMU imu;
-
-    private boolean hanging;
+    public boolean hanging;
 
     //PID material
     DcMotorEx slideMotorRight;
@@ -119,6 +118,9 @@ public class RedTetrisLessTele extends OpMode {
 
     public void driverAInitialize()
     {
+        //hang
+        hanging = false;
+
         //modes
         manualOn = true;
         emergencyMode = true; //false for tetris
@@ -204,7 +206,6 @@ public class RedTetrisLessTele extends OpMode {
     }
     public void driverBInitialize()
     {
-        hanging = false;
         outputArray = new String[12][13]; //original: 12 13 // new: 12 14
         cursorX = 1;
         cursorY = 10;
@@ -262,7 +263,7 @@ public class RedTetrisLessTele extends OpMode {
     public void loop()
     {
         //test
-        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", Mailbox.autoEndHead);
+        telemetry.addData("imu direction" + dirTestIMU, Mailbox.autoEndHead);
 
         //ONLY FOR MEET ONE/TWO
         emergencyMode = true;
@@ -444,12 +445,9 @@ public class RedTetrisLessTele extends OpMode {
         }
 
         //strange math that somehow works
-        double autoEnd = Mailbox.autoEndHead;
-        if(Mailbox.autoEndHead>300)
-        {
-            autoEnd -= 360;
-        }
-        double botHeading = Math.toRadians(autoEnd) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) - Math.toRadians(90));
+        //double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(90));
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(90);
+
 
         telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
         telemetry.addData("bot value", Math.toDegrees(botHeading));
@@ -522,18 +520,6 @@ public class RedTetrisLessTele extends OpMode {
         /*slideMotorLeft.setPower(power);
         slideMotorRight.setPower(power);*/
 
-
-        //hang
-        if(gamepad2.right_stick_button || gamepad2.left_stick_button)
-        {
-            hanging = true;
-        }
-        if(hanging)
-        {
-            slideMotorLeft.setPower(-0.4);
-            slideMotorRight.setPower(-0.4);
-        }
-
         //flipping thing
         if(y2Released && armInHome)
         {
@@ -589,6 +575,18 @@ public class RedTetrisLessTele extends OpMode {
         if(gamepad2.left_bumper && gamepad2.right_bumper)
         {
             airplaneServo.setPosition(0.5);
+        }
+
+
+        //hang
+        if(gamepad2.right_stick_button || gamepad2.left_stick_button)
+        {
+            hanging = true;
+        }
+        if(hanging)
+        {
+            slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);
         }
 
         //telemetry CAN DELETE LATERRRRR

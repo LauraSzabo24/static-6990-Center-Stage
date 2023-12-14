@@ -1,4 +1,4 @@
-package TeleOp;
+package Ancient;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -18,7 +18,7 @@ import Auto.Mailbox;
 //copied last 11/7/2023 12:47 am
 
 @TeleOp
-public class VariantRedTetris extends OpMode {
+public class VariantBlueTetris extends OpMode {
     //drivetrain
     IMU imu;
     public boolean hanging;
@@ -38,8 +38,6 @@ public class VariantRedTetris extends OpMode {
 
     //DRIVER A material
     //toggles
-    private double speed;
-    private double multiply;
     private boolean armInHome;
     private boolean clawInHome;
     private boolean pushPopInHome;
@@ -118,17 +116,10 @@ public class VariantRedTetris extends OpMode {
 
     public void driverAInitialize()
     {
-        //hang
-        hanging = false;
-
         //modes
         manualOn = true;
         emergencyMode = true; //false for tetris
         confirmA = false;
-
-        //drivetrain
-        speed = 2;
-        multiply = 1;
 
         //emergency mode/ button controls
         a1Pressed = false;
@@ -200,12 +191,16 @@ public class VariantRedTetris extends OpMode {
         //intake motor
         intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
 
-        //arm into position
+        //start positions
         armLeftServo.setPosition(0.99);
         armRightServo.setPosition(0.01);
+
     }
     public void driverBInitialize()
     {
+        //hang
+        hanging = false;
+
         outputArray = new String[12][13]; //original: 12 13 // new: 12 14
         cursorX = 1;
         cursorY = 10;
@@ -390,22 +385,19 @@ public class VariantRedTetris extends OpMode {
         }
 
         //intake lift here
-        if(gamepad1.right_trigger> 0){
-            speed = 4;
-        }
-        else {
-            speed = 2;
-        }
-
-        if(gamepad1.left_trigger> 0)
+        /*if(y1Released && intakeLiftInHome)
         {
-            speed = 2;
-            multiply = 3;
+            y1Pressed = false;
+            y1Released = false;
+            intakeLiftInHome = false;
+            intakeLiftServo.setPosition(0.75);
         }
-        else {
-            speed = 2;
-            multiply = 1;
-        }
+        if(y1Released && !intakeLiftInHome) {
+            y1Pressed = false;
+            y1Released = false;
+            intakeLiftInHome = true;
+            intakeLiftServo.setPosition(0.25);
+        }*/
 
         //intake spinner sucking vacuum cleaner thing
         if(gamepad1.a)
@@ -445,9 +437,8 @@ public class VariantRedTetris extends OpMode {
         }
 
         //strange math that somehow works
-        //double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(90));
-        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(90);
-
+        //double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270));
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270);
 
         telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
         telemetry.addData("bot value", Math.toDegrees(botHeading));
@@ -465,10 +456,10 @@ public class VariantRedTetris extends OpMode {
         double backLeftPower = (rotY - rotX + rx) / denominator;
         double frontRightPower = (rotY - rotX - rx) / denominator;
         double backRightPower = (rotY + rotX - rx) / denominator;
-        motorFrontLeft.setPower(multiply * frontLeftPower/speed);
-        motorBackLeft.setPower(multiply * backLeftPower/speed);
-        motorFrontRight.setPower(multiply * frontRightPower/speed);
-        motorBackRight.setPower(multiply * backRightPower/speed);
+        motorFrontLeft.setPower(frontLeftPower/2);
+        motorBackLeft.setPower(backLeftPower/2);
+        motorFrontRight.setPower(frontRightPower/2);
+        motorBackRight.setPower(backRightPower/2);
         telemetry.addLine(String.format("setting motor powers to:"));
         telemetry.addData("frontLeft ", frontLeftPower);
         telemetry.addData("backLeft ", backLeftPower);
@@ -526,8 +517,8 @@ public class VariantRedTetris extends OpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = false;
-            armLeftServo.setPosition(0.95);
-            armRightServo.setPosition(0.05);
+            armLeftServo.setPosition(1);
+            armRightServo.setPosition(0);
         }
         else if(y2Released) {
             y2Released = false;
@@ -537,24 +528,22 @@ public class VariantRedTetris extends OpMode {
             armRightServo.setPosition(1);
         }
 
+
+
         //push pop (not for meet 1)
-        if(x2Released && pushPopInHome)
+        /*if(x2Released && pushPopInHome)
         {
             x2Released = false;
             x2Pressed = false;
             pushPopInHome = false;
-
-            armLeftServo.setPosition(0.7);
-            armRightServo.setPosition(0.3);
+            //pushPopServo.setPosition(0.5);
         } else if (x2Released)
         {
             x2Released = false;
             x2Pressed = false;
             pushPopInHome = true;
-
-            armLeftServo.setPosition(0.7);
-            armRightServo.setPosition(0.3);
-        }
+            //pushPopServo.setPosition(0);
+        }*/
 
         //claw servo
         if(a2Released && clawInHome)
@@ -574,9 +563,8 @@ public class VariantRedTetris extends OpMode {
         //airplane
         if(gamepad2.left_bumper && gamepad2.right_bumper)
         {
-            airplaneServo.setPosition(0.5);
+            airplaneServo.setPosition(0.2);
         }
-
 
         //hang
         if(gamepad2.right_stick_button || gamepad2.left_stick_button)

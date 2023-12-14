@@ -1,7 +1,12 @@
 package TeleOp;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.acmerobotics.roadrunner.util.Angle;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,54 +17,42 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDriveCancelable;
+import org.firstinspires.ftc.teamcode.drive.TeleOpAugmentedDriving;
 
 import Auto.Mailbox;
 
 //copied last 11/7/2023 12:47 am
 
 @TeleOp
-public class VariantBlueTetris extends OpMode {
+public class RedTetrisTele extends LinearOpMode {
     //drivetrain
     IMU imu;
-    public boolean hanging;
 
     //PID material
-    DcMotorEx slideMotorRight;
-    DcMotorEx slideMotorLeft;
-    ElapsedTime timer = new ElapsedTime();
-    private double lastError = 0;
-    private double integralSum = 0;
-    public static double Kp = 0.01;
-    public static double Kd = 0.0;
-    public static double targetPosition = 5000;
+   // DcMotorEx slideMotorRight;
+   // DcMotorEx slideMotorLeft;
     private final FtcDashboard dashboard = FtcDashboard.getInstance();
-    public TelemetryPacket packet;
 
 
     //DRIVER A material
     //toggles
+    private double speed;
+    private double multiply;
     private boolean armInHome;
     private boolean clawInHome;
     private boolean pushPopInHome;
     private boolean intakeLiftInHome;
+
     //other
     private boolean confirmA;
-    private boolean manualOn;
-    private boolean emergencyMode;
-    private Servo clawServo, armLeftServo,armRightServo, airplaneServo, intakeLiftServo;
-    DcMotorEx intakeMotor;
+    //private Servo clawServo, armLeftServo, armRightServo, airplaneServo, intakeLiftServo;
+   // DcMotorEx intakeMotor;
 
     //mecanum drive stuff
-    private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight;
-    private double getMax(double[] input) {
-        double max = Integer.MIN_VALUE;
-        for (double value : input) {
-            if (Math.abs(value) > max) {
-                max = Math.abs(value);
-            }
-        }
-        return max;
-    }
+    //private SampleMecanumDriveCancelable drive;
+    //private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight;
+
 
     //button controls for DRIVER A
     private boolean a1Pressed;
@@ -76,8 +69,9 @@ public class VariantBlueTetris extends OpMode {
     private boolean rightBumperPressed;
 
 
-
     //DRIVER B material
+
+    private boolean hanging;
     private static String[][] outputArray;
     private int cursorX;
     private int cursorY;
@@ -87,6 +81,9 @@ public class VariantBlueTetris extends OpMode {
     private boolean confirmB;
     private String[] colors;
     private String previousOutput;
+
+    private double[] position1;
+    private double[] position2;
 
     //button controls for DRIVER B
     private boolean a2Pressed;
@@ -114,12 +111,21 @@ public class VariantBlueTetris extends OpMode {
     IMU.Parameters parameters;
     String dirTestIMU;
 
-    public void driverAInitialize()
+    //Finite State Machine
+    public enum Mode
     {
+        MANUAL, AUTO, EMERGENCY;
+    }
+    public Mode state;
+
+    public void driverAInitialize() {
         //modes
-        manualOn = true;
-        emergencyMode = true; //false for tetris
+        state = Mode.MANUAL;
         confirmA = false;
+
+        //drivetrain
+        speed = 2;
+        multiply = 1;
 
         //emergency mode/ button controls
         a1Pressed = false;
@@ -139,7 +145,7 @@ public class VariantBlueTetris extends OpMode {
         dashboard.setTelemetryTransmissionInterval(25);
 
         //slide motors
-        slideMotorLeft = hardwareMap.get(DcMotorEx.class, "LeftSlide");
+        /*slideMotorLeft = hardwareMap.get(DcMotorEx.class, "LeftSlide");
         slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slideMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -150,7 +156,6 @@ public class VariantBlueTetris extends OpMode {
         slideMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         slideMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        targetPosition = 0;
 
         //drive motors
         motorFrontLeft = (DcMotorEx) hardwareMap.dcMotor.get("FL");
@@ -166,51 +171,50 @@ public class VariantBlueTetris extends OpMode {
         motorFrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        //imu
-        // Retrieve the IMU from the hardware map
-        Mailbox mail =  new Mailbox();
+        //imu - field centric
+        Mailbox mail = new Mailbox();
         imu = hardwareMap.get(IMU.class, "imu");
         parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-
-        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-        imu.initialize(parameters);
+        imu.initialize(parameters);*/
 
         //intake outake servos
         armInHome = true;
         pushPopInHome = true;
         clawInHome = true;
         intakeLiftInHome = true;
-        clawServo = hardwareMap.get(Servo.class, "claw");
+        /*clawServo = hardwareMap.get(Servo.class, "claw");
         armRightServo = hardwareMap.get(Servo.class, "armRightServo");
         armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
         airplaneServo = hardwareMap.get(Servo.class, "airplaneServo");
-        intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");
+        intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");*/
 
         //intake motor
-        intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
+       /* intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");*/
 
-        //start positions
-        armLeftServo.setPosition(0.99);
-        armRightServo.setPosition(0.01);
-
+        //arm into start position
+        /*armLeftServo.setPosition(0.99);
+        armRightServo.setPosition(0.01);*/
     }
-    public void driverBInitialize()
-    {
-        //hang
+
+    public void driverBInitialize() {
+        //hanging
         hanging = false;
 
+        //tetris material
+        position1 = new double[]{-1,-1};
+        position2 = new double[]{-1,-1};
         outputArray = new String[12][13]; //original: 12 13 // new: 12 14
         cursorX = 1;
         cursorY = 10;
         cursorFlash = 50;
-        firstPos = new int[]{-1,-1};
-        secPos = new int[]{-1,-1};
+        firstPos = new int[]{-1, -1};
+        secPos = new int[]{-1, -1};
         confirmB = false;
         previousOutput = "";
         boxRow = true;
-        colors = new String[] {"", ""};
+        colors = new String[]{"", ""};
         makeGrid();
         printAll();
 
@@ -237,74 +241,161 @@ public class VariantBlueTetris extends OpMode {
         downPressed = false;
         downReleased = false;
     }
-    public void cameraInit()
-    {
+
+    public void cameraInit() {
         //color camera stuff goes in here
     }
-    @Override
-    public void init()
+
+    public void runOpMode() throws InterruptedException {
+        initialize();
+
+        //tetris - cancelable trajectories
+        //drive = new SampleMecanumDriveCancelable(hardwareMap);
+        //drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //drive.setPoseEstimate(Mailbox.currentPose);
+        waitForStart();
+        if (isStopRequested()) return;
+
+        while(opModeIsActive() && !isStopRequested())
+        {
+            //tetris
+            //Pose2d poseEstimate = drive.getPoseEstimate();
+            // Print pose to telemetry
+            /*telemetry.addData("mode", state);
+            telemetry.addData("x", poseEstimate.getX());
+            telemetry.addData("y", poseEstimate.getY());
+            telemetry.addData("heading", poseEstimate.getHeading());
+            */
+
+            mainLoop();
+        }
+    }
+    public void initialize()
     {
         driverAInitialize();
         driverBInitialize();
         cameraInit();
-    }
-    @Override
-    public void start()
-    {
         makeGrid();
-        //everything goes in here that isn't looping, won't be much
     }
-    @Override
-    public void loop()
-    {
-        //test
-        telemetry.addData("imu direction" + dirTestIMU, Mailbox.autoEndHead);
 
-        //ONLY FOR MEET ONE/TWO
-        emergencyMode = true;
+    public void altLoop()
+    {
+        sleep(40);
+
+        //telemetry
+        telemetry.addData("mode ", state);
+        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", Mailbox.autoEndHead);
+        //telemetry.addData("servo position in ", armLeftServo.getPosition());
+
+        //updates
+        updateDriverAButtons();
+
+        //transfer to emergency
+        if (leftBumperReleased && rightBumperReleased && (gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_down)) {
+            leftBumperReleased = false;
+            leftBumperPressed = false;
+            rightBumperReleased = false;
+            rightBumperPressed = false;
+            if (state.equals(Mode.EMERGENCY)) {
+                state = Mode.MANUAL;
+            } else {
+                state = Mode.EMERGENCY;
+            }
+        }
+
+        switch (state) {
+            case MANUAL:
+                //Color Camera
+                if (colors[0].equals("") && colors[1].equals("") && confirmB && confirmA) {
+                    getColors();
+                }
+                //Telemetry
+                if (armInHome) {
+                    telemetry.addLine(String.format("arm in"));
+                } else {
+                    telemetry.addLine(String.format("arm out"));
+                }
+                if (clawInHome) {
+                    telemetry.addLine(String.format("claws in"));
+                } else {
+                    telemetry.addLine(String.format("claws out"));
+                }
+                if (pushPopInHome) {
+                    telemetry.addLine(String.format("push pop in"));
+                } else {
+                    telemetry.addLine(String.format("push pop out"));
+                }
+                //Driver A
+                updateDriverAControls();
+                if (b1Released) {
+                    b1Released = false;
+                    b1Pressed = false;
+                    confirmA = true;
+                }
+                //Driver B
+                updateTetrisThing();
+                //Tetris Pixel Placing
+                if (confirmA && confirmB) {
+                    state = Mode.AUTO;
+                    int[] place1 = firstPos;
+                    int[] place2 = secPos;
+                    runPixelPlacing(place1);
+                    state = Mode.MANUAL;
+                    firstPos = new int[]{-1,-1};
+                    secPos = new int[]{-1,-1};
+                    confirmB = false;
+                    confirmA = false;
+                }
+            case AUTO:
+                // Telemetry
+                telemetry.addLine(String.format("p1 x coor " + position1[0]));
+                telemetry.addLine(String.format("p1 y coor " + position1[1]));
+                telemetry.addLine(String.format("p2 x coor " + position2[0]));
+                telemetry.addLine(String.format("p2 y coor " + position2[1]));
+            case EMERGENCY:
+                telemetry.addLine(String.format("EMERGENCYYYYYYYY MODEEEEEEEEEE"));
+                updateDriverBButtons();
+                emergencyModeControls();
+            default:
+                //nothing
+        }
+        telemetry.update();
+    }
+
+    public void mainLoop() {
+        telemetry.addData("mode ", state);
+        //test - field centric
+        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", Mailbox.autoEndHead);
 
         //button update
         updateDriverAButtons();
 
         //EMERGENCY MODE CONTROLS
-        if(leftBumperReleased && rightBumperReleased && (gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_down))
-        {
+        if (leftBumperReleased && rightBumperReleased && (gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_down)) {
             leftBumperReleased = false;
             leftBumperPressed = false;
             rightBumperReleased = false;
             rightBumperPressed = false;
-            /*b1Released = false;
-            b1Pressed = false;
-            a1Released = false;
-            a1Pressed = false;
-            x1Released = false;
-            x1Pressed = false;
-            y1Released = false;
-            y1Pressed = false;*/
-            if(emergencyMode)            {
-                //emergencyMode = false;
-            }
-            else {
-                //emergencyMode = true;
+            if (state.equals(Mode.EMERGENCY)) {
+                state = Mode.MANUAL;
+            } else {
+                state = Mode.EMERGENCY;
             }
             a2Released = false;
             a2Pressed = false;
         }
-        if(emergencyMode)
-        {
+        if (state.equals(Mode.EMERGENCY)) {
             telemetry.addLine(String.format("EMERGENCYYYYYYYY MODEEEEEEEEEE"));
             updateDriverBButtons();
             emergencyModeControls();
         }
 
         //Normal Driver A Controls
-        if(!emergencyMode && manualOn)
-        {
+        if (state.equals(Mode.MANUAL)) {
             //everything else
             updateDriverAControls();
             //confirmation
-            if(b1Released)
-            {
+            if (b1Released) {
                 b1Released = false;
                 b1Pressed = false;
                 confirmA = true;
@@ -312,120 +403,137 @@ public class VariantBlueTetris extends OpMode {
         }
 
         //Tetris Driver B Updating
-        if(!emergencyMode) {
+        if (!state.equals(Mode.EMERGENCY)) {
             printAll();
             updateTetrisThing();
         }
 
         //Tetris color checker
-        if(colors[0].equals("") && colors[1].equals("") && confirmB && confirmA)
-        {
-            //getColors();
+        if (colors[0].equals("") && colors[1].equals("") && confirmB && confirmA) {
+            getColors();
         }
 
         //Tetris Pixel Placing Thing
-        if(confirmA && confirmB && !emergencyMode)
-        {
+        if (confirmA && confirmB && state.equals(Mode.MANUAL)) {
+            state = Mode.AUTO;
             int[] place1 = firstPos;
             int[] place2 = secPos;
-            runPixelPlacing(place1, place2);
-            //firstPos = new int[]{-1,-1};
-            //secPos = new int[]{-1,-1};
-            //confirmB = false;
-            //confirmA = false;
+            runPixelPlacing(place1);
+        }
+
+        if((state.equals(Mode.AUTO)) && ((gamepad1.x)))// || !drive.isBusy()))) //bit suspicious
+        {/*
+            // If x is pressed, we break out of the automatic following
+            if (gamepad1.x) {
+                drive.breakFollowing();
+                state = Mode.MANUAL;
+                firstPos = new int[]{-1,-1};
+                secPos = new int[]{-1,-1};
+                confirmB = false;
+                confirmA = false;
+            }
+
+            if (!drive.isBusy()) {
+                if(secPos[0]!= -1)
+                {
+                    runPixelPlacing(secPos);
+                }
+                else
+                {
+                    state = Mode.MANUAL;
+                    firstPos = new int[]{-1,-1};
+                    secPos = new int[]{-1,-1};
+                    confirmB = false;
+                    confirmA = false;
+                }
+            }*/
+
+        }
+
+        if(state.equals(Mode.AUTO) || state.equals((Mode.MANUAL))) //take manual option out
+        {
+            telemetry.addLine(String.format("p1 x coor " + position1[0]));
+            telemetry.addLine(String.format("p1 y coor " + position1[1]));
+            telemetry.addLine(String.format("p2 x coor " + position2[0]));
+            telemetry.addLine(String.format("p2 y coor " + position2[1]));
         }
 
         //telemetry CAN DELETE LATERRRRR
-        if(armInHome){
+        if (armInHome) {
             telemetry.addLine(String.format("arm in"));
-        }
-        else{
+        } else {
             telemetry.addLine(String.format("arm out"));
         }
-        if(clawInHome){
+        if (clawInHome) {
             telemetry.addLine(String.format("claws in"));
-        }
-        else{
+        } else {
             telemetry.addLine(String.format("claws out"));
         }
-        if(pushPopInHome){
+        if (pushPopInHome) {
             telemetry.addLine(String.format("push pop in"));
-        }
-        else{
+        } else {
             telemetry.addLine(String.format("push pop out"));
         }
 
-        telemetry.addData("servo position in ", armLeftServo.getPosition());
+        //telemetry.addData("servo position in ", armLeftServo.getPosition());
         telemetry.update();
     }
 
     //DRIVER A NORMAL CONTROLS FROM HEREEEE
-    public void updateDriverAControls()
-    {
+    public void updateDriverAControls() {
         //mecanum
+        if (gamepad1.right_trigger > 0) {
+            speed = 4;
+        } else {
+            speed = 2;
+        }
+        if (gamepad1.left_trigger > 0) {
+            speed = 2;
+            multiply = 3;
+        } else {
+            speed = 2;
+            multiply = 1;
+        }
         drive();
 
         //pivots
-        if(gamepad1.right_bumper)
-        {
-            motorBackLeft.setPower(0);
+        if (gamepad1.right_bumper) {
+            /*motorBackLeft.setPower(0);
             motorBackRight.setPower(0);
             motorFrontLeft.setPower(1.5);//0.9
-            motorFrontRight.setPower(-1.5);
+            motorFrontRight.setPower(-1.5);*/
             telemetry.addLine(String.format("pivot right"));
 
-        }
-        else if(gamepad1.left_bumper)
-        {
-            motorBackLeft.setPower(0);
+        } else if (gamepad1.left_bumper) {
+           /* motorBackLeft.setPower(0);
             motorBackRight.setPower(0);
             motorFrontLeft.setPower(-1.5);
-            motorFrontRight.setPower(1.5);
+            motorFrontRight.setPower(1.5);*/
             telemetry.addLine(String.format("pivot left"));
         }
 
-        //intake lift here
-        /*if(y1Released && intakeLiftInHome)
-        {
-            y1Pressed = false;
-            y1Released = false;
-            intakeLiftInHome = false;
-            intakeLiftServo.setPosition(0.75);
-        }
-        if(y1Released && !intakeLiftInHome) {
-            y1Pressed = false;
-            y1Released = false;
-            intakeLiftInHome = true;
-            intakeLiftServo.setPosition(0.25);
-        }*/
-
         //intake spinner sucking vacuum cleaner thing
-        if(gamepad1.a)
-        {
-            intakeMotor.setPower(0.6);
+        if (gamepad1.a) {
+           // intakeMotor.setPower(0.6);
             telemetry.addLine(String.format("powering vacuum"));
-        }
-        else if(gamepad1.x)
-        {
-            intakeMotor.setPower(-0.6);
+        } else if (gamepad1.x) {
+            //intakeMotor.setPower(-0.6);
             telemetry.addLine(String.format("powering vacuum BACK"));
-        }
-        else{
-            intakeMotor.setPower(0);
+        } else {
+            //intakeMotor.setPower(0);
             telemetry.addLine(String.format("vacuum on standby"));
         }
 
         //telemetry CAN DELETE LATERRRR
-        if(intakeLiftInHome){
+        if (intakeLiftInHome) {
             telemetry.addLine(String.format("intake lifted"));
-        }
-        else{
+        } else {
             telemetry.addLine(String.format("intake lowered"));
         }
     }
-    public void drive()
-    {
-        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+
+    public void drive() {
+       /* double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
 
@@ -437,8 +545,11 @@ public class VariantBlueTetris extends OpMode {
         }
 
         //strange math that somehow works
-        //double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270));
-        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270);
+        double autoEnd = Mailbox.autoEndHead;
+        if (Mailbox.autoEndHead > 300) {
+            autoEnd -= 360;
+        }
+        double botHeading = Math.toRadians(autoEnd) - ((2 * Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) - Math.toRadians(90));
 
         telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
         telemetry.addData("bot value", Math.toDegrees(botHeading));
@@ -456,334 +567,277 @@ public class VariantBlueTetris extends OpMode {
         double backLeftPower = (rotY - rotX + rx) / denominator;
         double frontRightPower = (rotY - rotX - rx) / denominator;
         double backRightPower = (rotY + rotX - rx) / denominator;
-        motorFrontLeft.setPower(frontLeftPower/2);
-        motorBackLeft.setPower(backLeftPower/2);
-        motorFrontRight.setPower(frontRightPower/2);
-        motorBackRight.setPower(backRightPower/2);
+        motorFrontLeft.setPower(multiply * frontLeftPower / speed);
+        motorBackLeft.setPower(multiply * backLeftPower / speed);
+        motorFrontRight.setPower(multiply * frontRightPower / speed);
+        motorBackRight.setPower(multiply * backRightPower / speed);
         telemetry.addLine(String.format("setting motor powers to:"));
         telemetry.addData("frontLeft ", frontLeftPower);
         telemetry.addData("backLeft ", backLeftPower);
         telemetry.addData("frontRight ", frontRightPower);
-        telemetry.addData("backRight ", backRightPower);
+        telemetry.addData("backRight ", backRightPower);*/
     }
 
 
-
-
-
-
-
     //EMERGENCY MODE THINGS HEREEE
-    public void emergencyModeControls()
-    {
+    public void emergencyModeControls() {
         updateDriverAControls();
 
         //ALL DRIVER B CONTROLS
-        if(gamepad2.dpad_up && slideMotorLeft.getCurrentPosition()<3500 )
+        if (gamepad2.dpad_up )//&& slideMotorLeft.getCurrentPosition() < 3500)
         {
-            slideMotorLeft.setPower(0.7);
-            slideMotorRight.setPower(0.7);
+            /*slideMotorLeft.setPower(0.7);
+            slideMotorRight.setPower(0.7);*/
             telemetry.addLine(String.format("slide goes up"));
         }
-        if(gamepad2.dpad_down && slideMotorLeft.getCurrentPosition() > 100)
+        if (gamepad2.dpad_down )//&& slideMotorLeft.getCurrentPosition() > 100)
         {
-            slideMotorLeft.setPower(-0.4);
-            slideMotorRight.setPower(-0.4);
+            /*slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);*/
             telemetry.addLine(String.format("slide goes down"));
         }
-        if(!gamepad2.dpad_up && !gamepad2.dpad_down) //&& (Math.abs(targetPosition - slidePos)<15))
+        if (!gamepad2.dpad_up ) //&& !gamepad2.dpad_down) //&& (Math.abs(targetPosition - slidePos)<15))
         {
-            slideMotorLeft.setPower(0);
-            slideMotorRight.setPower(0);
+           /* slideMotorLeft.setPower(0);
+            slideMotorRight.setPower(0);*/
             telemetry.addLine(String.format("slide on standby"));
         }
-        if(gamepad2.dpad_left)
-        {
+        if (gamepad2.dpad_left) {
             telemetry.addLine(String.format("slide goes full down"));
         }
-        //double power = returnPower(targetPosition, slideMotorLeft.getCurrentPosition());
-        telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
-        telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
-        //telemetry.addData("targetPosition: ", targetPosition);
-        //telemetry.addData("power: ", power);
+
+       // telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
+        //telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
 
 
-        /*slideMotorLeft.setPower(power);
-        slideMotorRight.setPower(power);*/
+        //hang
+        if (gamepad2.right_stick_button || gamepad2.left_stick_button) {
+            hanging = true;
+        }
+        if (hanging) {
+           /* slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);*/
+        }
 
         //flipping thing
-        if(y2Released && armInHome)
-        {
+        if (y2Released && armInHome) {
             y2Released = false;
             y2Pressed = false;
             armInHome = false;
-            armLeftServo.setPosition(1);
-            armRightServo.setPosition(0);
-        }
-        else if(y2Released) {
+            /*armLeftServo.setPosition(0.95);
+            armRightServo.setPosition(0.05);*/
+        } else if (y2Released) {
             y2Released = false;
             y2Pressed = false;
             armInHome = true;
-            armLeftServo.setPosition(0);
-            armRightServo.setPosition(1);
+            /*armLeftServo.setPosition(0);
+            armRightServo.setPosition(1);*/
         }
 
-
-
-        //push pop (not for meet 1)
-        /*if(x2Released && pushPopInHome)
-        {
+        //Arm low position
+        if (x2Released && pushPopInHome) {
             x2Released = false;
             x2Pressed = false;
             pushPopInHome = false;
-            //pushPopServo.setPosition(0.5);
-        } else if (x2Released)
-        {
+
+            /*armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);*/
+        } else if (x2Released) {
             x2Released = false;
             x2Pressed = false;
             pushPopInHome = true;
-            //pushPopServo.setPosition(0);
-        }*/
+
+           /* armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);*/
+        }
 
         //claw servo
-        if(a2Released && clawInHome)
-        {
+        if (a2Released && clawInHome) {
             a2Released = false;
             a2Pressed = false;
             clawInHome = false;
-            clawServo.setPosition(0);
-        } else if (a2Released)
-        {
+            //clawServo.setPosition(0);
+        } else if (a2Released) {
             a2Released = false;
             a2Pressed = false;
             clawInHome = true;
-            clawServo.setPosition(0.3);
+            //clawServo.setPosition(0.3);
         }
 
         //airplane
-        if(gamepad2.left_bumper && gamepad2.right_bumper)
-        {
-            airplaneServo.setPosition(0.2);
-        }
-
-        //hang
-        if(gamepad2.right_stick_button || gamepad2.left_stick_button)
-        {
-            hanging = true;
-        }
-        if(hanging)
-        {
-            slideMotorLeft.setPower(-0.4);
-            slideMotorRight.setPower(-0.4);
+        if (gamepad2.left_bumper && gamepad2.right_bumper) {
+           // airplaneServo.setPosition(0.5);
         }
 
         //telemetry CAN DELETE LATERRRRR
-        telemetry.addData("servo is at", clawServo.getPosition());
+       // telemetry.addData("servo is at", clawServo.getPosition());
         telemetry.update();
-        if(armInHome){
+        if (armInHome) {
             telemetry.addLine(String.format("arm in"));
-        }
-        else{
+        } else {
             telemetry.addLine(String.format("arm out"));
         }
-        if(clawInHome){
+        if (clawInHome) {
             telemetry.addLine(String.format("claws in"));
-        }
-        else{
+        } else {
             telemetry.addLine(String.format("claws out"));
         }
-        if(pushPopInHome){
+        if (pushPopInHome) {
             telemetry.addLine(String.format("push pop in"));
-        }
-        else{
+        } else {
             telemetry.addLine(String.format("push pop out"));
         }
     }
 
     //BUTTON UPDATES
-    public void updateDriverAButtons()
-    {
+    public void updateDriverAButtons() {
         //a
-        if(gamepad1.a)
-        {
+        if (gamepad1.a) {
             a1Pressed = true;
-        }
-        else if(a1Pressed){
+        } else if (a1Pressed) {
             a1Released = true;
         }
         //b
-        if(gamepad1.b)
-        {
+        if (gamepad1.b) {
             b1Pressed = true;
-        }
-        else if(b1Pressed){
+        } else if (b1Pressed) {
             b1Released = true;
         }
         //x
-        if(gamepad1.x)
-        {
+        if (gamepad1.x) {
             x1Pressed = true;
-        }
-        else if(x1Pressed){
+        } else if (x1Pressed) {
             x1Released = true;
         }
         //y
-        if(gamepad1.y)
-        {
+        if (gamepad1.y) {
             y1Pressed = true;
-        }
-        else if(y1Pressed){
+        } else if (y1Pressed) {
             y1Released = true;
         }
         //right bumper
-        if(gamepad1.right_trigger>0.8)
-        {
+        if (gamepad1.right_trigger > 0.8) {
             rightBumperPressed = true;
-        }
-        else if(rightBumperPressed){
+        } else if (rightBumperPressed) {
             rightBumperReleased = true;
         }
         //left bumper
-        if(gamepad1.left_trigger>0.8)
-        {
+        if (gamepad1.left_trigger > 0.8) {
             leftBumperPressed = true;
-        }
-        else if(leftBumperPressed){
+        } else if (leftBumperPressed) {
             leftBumperReleased = true;
         }
     }
-    public void updateDriverBButtons()
-    {
+
+    public void updateDriverBButtons() {
         //x
-        if(gamepad2.x)
-        {
+        if (gamepad2.x) {
             x2Pressed = true;
-        }
-        else if(x2Pressed){
+        } else if (x2Pressed) {
             x2Released = true;
         }
         //y
-        if(gamepad2.y)
-        {
+        if (gamepad2.y) {
             y2Pressed = true;
-        }
-        else if(y2Pressed){
+        } else if (y2Pressed) {
             y2Released = true;
         }
         //a
-        if(gamepad2.a)
-        {
+        if (gamepad2.a) {
             a2Pressed = true;
-        }
-        else if(a2Pressed){
+        } else if (a2Pressed) {
             a2Released = true;
         }
     }
 
 
+    //TEEEEEEEEEETTTTTTTTTTTTTTTTTTTTTTTTTTRRRRRRRRRRRRRIIIIIIIIIIIIIISSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
-
-
-
-    //ALL TETRIS TRASH DOWN FROM HERE
-    public int xCoorSimplify(int xCoor, int yCoor) //doesn't work
-    {
-        //remove spaces from x coor
-        int newX = 0;
-        for(int x = 0; x<outputArray[0].length; x++)
-        {
-            if(!outputArray[yCoor][x].equals("   ") && !outputArray[yCoor][x].equals("_."))
-            {
-                newX+=1;
-            }
-        }
-        return newX;
-    }
     public double convertX(int xCoor, int yCoor) //doesn't work
     {
-        telemetry.addLine(String.format("Old x coor" + xCoor));
-        xCoor = xCoorSimplify(xCoor, yCoor);
-        telemetry.addLine(String.format("New x coor" + xCoor));
-        if(boxRow)
+        double inches = 17; //distance to last x coordinate unindented
+        if(xCoor%2==1) //indented
         {
-            return 0.3125+(3*xCoor*0.5);
-            //return distanceToFirstTopPixelFromScrew+(pixelWidth*xCoor*0.5);
-        }
-        else {
-            return 1.8125+(3*xCoor*0.5);
-            //return distanceToFirstPixel+(pixelWidth*xCoor*0.5);
-        }
-    }
-    public double convertY(int yCoor) //seems to work
-    {
-        double inches = 10.5;
-        for(int x=10; x>=yCoor; x--)
-        {
-            if(x%2==1)
+            inches -= 1.5; //distance between indented and unindented
+            for(int i=12; i>xCoor; i--)
             {
-                inches+=2;
+                if(i%2==1)
+                {
+                    inches -= 3; //one pixel
+                }
             }
-            else {
-                inches+=3;
+        }
+        else{
+            for(int i=12; i>xCoor; i--)
+            {
+                if(i%2==0)
+                {
+                    inches -= 3; //one pixel
+                }
             }
         }
         return inches;
     }
-    public void runPixelPlacing(int [] target1, int [] target2)
-    {
-        manualOn = false;
-        double[] position1 = new double[2];
-        double[] position2 = new double[2];
 
-        telemetry.addLine(String.format("" + target1[0]));
-        if(target1[0]!=-1) {
-            telemetry.addLine(String.format("x normal " + target1[1]));
-            telemetry.addLine(String.format("y normal " + target1[0]));
+    public double convertY(int yCoor) //seems to work
+    {
+        double inches = 10.5; //height for first unindented pixel
+        if(yCoor%2==1) //indented
+        {
+            inches += 2; //height between indented and unindented
+        }
+        for(int i=10; i>yCoor; i--)
+        {
+            inches += 3; //height of one pixel
+        }
+        double slideValue = 1; // 1 inch = ? slide value
+        double initialSlideValue = 0; //0 position for slides
+        return (inches * slideValue) + initialSlideValue;
+    }
+
+    public void runPixelPlacing(int[] target1) {
+        position1 = new double[2];
+
+        if (target1[0] != -1) {
             position1[0] = convertX(target1[1], target1[0]);
             position1[1] = convertY(target1[0]);
 
-            telemetry.addLine(String.format("x in inches " + position1[0]));
-            telemetry.addLine(String.format("y in inches " + position1[1]));
-            //road runner code that goes to the correct firstPos x in arc shape
+            moveToPose(position1);
             //moves slides while going
             //push pixel out
-
-            if(target2[0]!=-1) {
-                telemetry.addLine(String.format("x normal " + target2[1]));
-                telemetry.addLine(String.format("y normal " + target2[0]));
-                position2[0] = convertX(target2[1], target2[0]);
-                position2[1] = convertY(target2[0]);
-                telemetry.addLine(String.format("x in inches " + position2[0]));
-                telemetry.addLine(String.format("y in inches " + position2[1]));
-            }
         }
 
-        //put early end / overriding in here
-        //manualOn = true;
     }
 
-    public void getColors()
+    public void moveToPose(double[] position)
     {
-        colors = new String[] {"G", "P"}; //⬜ 🟪 🟩 🟨
+        double targetAHeading = Math.toRadians(90);
+        Vector2d targetAVector = new Vector2d((position[0]+5),15); //y is the y to the board | x is the distance on board + to the board
+/*
+        Trajectory traj1 = drive.trajectoryBuilder(poseEstimate)
+                .splineTo(targetAVector, targetAHeading)
+                .build();
+
+        drive.followTrajectoryAsync(traj1);*/
     }
-    public void updateTetrisThing()
-    {
+
+    public void getColors() {
+        colors = new String[]{"@", "@"}; //⬜ 🟪 🟩 🟨
+    }
+
+    public void updateTetrisThing() {
         //cursor flashing
-        if(outputArray[cursorY][cursorX]!="◼")
-        {
+        if (outputArray[cursorY][cursorX] != "◼") {
             previousOutput = outputArray[cursorY][cursorX];
         }
         cursorFlash--;
-        if(cursorFlash>25) {
+        if (cursorFlash > 15) {
             outputArray[cursorY][cursorX] = "◼"; //⬛ █◼
-        }
-        else
-        {
+        } else {
             outputArray[cursorY][cursorX] = previousOutput;
         }
-        if(cursorFlash<1)
-        {
-            cursorFlash=50;
+        if (cursorFlash < 1) {
+            cursorFlash = 50;
             previousOutput = outputArray[cursorY][cursorX];
             outputArray[cursorY][cursorX] = previousOutput;
         }
@@ -791,195 +845,157 @@ public class VariantBlueTetris extends OpMode {
 
 
         //selection
-        if(a2Released && manualOn && !(colors[0].equals("")))
-        {
+        if (a2Released && state.equals(Mode.MANUAL) && !(colors[0].equals(""))) {
             a2Pressed = false;
             a2Released = false;
             outputArray[cursorY][cursorX] = colors[0];
-            if(colors[1]=="")
-            {
+            if (colors[1] == "") {
                 secPos = new int[]{cursorY, cursorX};
-            }
-            else{
+            } else {
                 firstPos = new int[]{cursorY, cursorX};
             }
-            colors[0]=colors[1];
-            colors[1]="";
+            colors[0] = colors[1];
+            colors[1] = "";
         }
 
         //retrieval???? necessary???
 
         //confirmation
-        if(b2Released && (firstPos[1]!=-1 || secPos[1]!=-1) && manualOn)
-        {
+        if (b2Released && (firstPos[1] != -1 || secPos[1] != -1) && state.equals(Mode.MANUAL)) {
             b2Pressed = false;
             b2Released = false;
             confirmB = true;
         }
     }
+
     public void cursorUpdate() //WORKS
     {
         //left
-        if(gamepad2.dpad_left)
-        {
+        if (gamepad2.dpad_left) {
             leftPressed = true;
-        }
-        else if(leftPressed){
+        } else if (leftPressed) {
             leftReleased = true;
         }
         //right
-        if(gamepad2.dpad_right && cursorX<12)
-        {
+        if (gamepad2.dpad_right && cursorX < 12) {
             rightPressed = true;
-        }
-        else if(rightPressed){
+        } else if (rightPressed) {
             rightReleased = true;
         }
         //down
-        if(gamepad2.dpad_down && cursorY<10)
-        {
+        if (gamepad2.dpad_down && cursorY < 10) {
             downPressed = true;
-        }
-        else if(downPressed){
+        } else if (downPressed) {
             downReleased = true;
         }
         //up
-        if(gamepad2.dpad_up && cursorY>=1)
-        {
+        if (gamepad2.dpad_up && cursorY >= 1) {
             upPressed = true;
-        }
-        else if(upPressed){
+        } else if (upPressed) {
             upReleased = true;
         }
 
         //a and b
-        if(gamepad2.a)
-        {
+        if (gamepad2.a) {
             a2Pressed = true;
-        }
-        else if(a2Pressed){
+        } else if (a2Pressed) {
             a2Released = true;
         }
         //up
-        if(gamepad2.b)
-        {
+        if (gamepad2.b) {
             b2Pressed = true;
-        }
-        else if(b2Pressed){
+        } else if (b2Pressed) {
             b2Released = true;
         }
 
         //cursor movement
         isBoxRow();
-        if(leftReleased && cursorX>1)
-        {
+        if (leftReleased && cursorX > 1) {
             leftPressed = false;
             leftReleased = false;
             outputArray[cursorY][cursorX] = previousOutput;
-            if(cursorX-1>1){
-                cursorX-=2;
+            if (cursorX - 1 > 1) {
+                cursorX -= 2;
             }
-        }
-        else if(rightReleased && cursorX<12)
-        {
+        } else if (rightReleased && cursorX < 12) {
             rightPressed = false;
             rightReleased = false;
             outputArray[cursorY][cursorX] = previousOutput;
-            if(cursorX+1<12){
-                cursorX+=2;
+            if (cursorX + 1 < 12) {
+                cursorX += 2;
             }
-        }
-        else if(downReleased && cursorY<10)
-        {
+        } else if (downReleased && cursorY < 10) {
             downPressed = false;
             downReleased = false;
             outputArray[cursorY][cursorX] = previousOutput;
             cursorY++;
-            if(boxRow){
+            if (boxRow) {
                 cursorX++;
-            }
-            else{
+            } else {
                 cursorX--;
             }
-        }
-        else if(upReleased && cursorY>=1)
-        {
+        } else if (upReleased && cursorY >= 1) {
             upPressed = false;
             upReleased = false;
             outputArray[cursorY][cursorX] = previousOutput;
             cursorY--;
-            if(boxRow){
+            if (boxRow) {
                 cursorX++;
-            }
-            else{
+            } else {
                 cursorX--;
             }
         }
     }
+
     public void isBoxRow() //WORKS
     {
-        if(cursorY%2==0)
-        {
+        if (cursorY % 2 == 0) {
             boxRow = true;
-        }
-        else{
+        } else {
             boxRow = false;
         }
     }
-    public void printAll()
-    {
+
+    public void printAll() {
         //colors avaliable
         telemetry.addLine(String.format("                    1      2"));
-        telemetry.addLine(String.format("COLORS - "+colors[0]+"      "+colors[1]));
+        telemetry.addLine(String.format("PIXELS  - " + colors[0] + "      " + colors[1]));
 
         //2d array output
         String rowOut = "";
-        for(int r=0; r<outputArray.length; r++)
-        {
+        for (int r = 0; r < outputArray.length; r++) {
             rowOut = "";
-            for(int c=0; c<outputArray[1].length; c++) {
+            for (int c = 0; c < outputArray[1].length; c++) {
                 rowOut += outputArray[r][c];
             }
             telemetry.addData("", rowOut);
         }
 
         //selections queue
-        if(firstPos[0]!=-1 && secPos[0]!=-1)
-        {
-            telemetry.addLine(String.format("QUEUE |   "+firstPos[1]+","+firstPos[0]+" then "+secPos[1]+","+secPos[0], null));
-        }
-        else if(firstPos[0]!=-1)
-        {
-            telemetry.addLine(String.format("QUEUE |   "+firstPos[1]+","+firstPos[0]));
-        }
-        else {
+        if (firstPos[0] != -1 && secPos[0] != -1) {
+            telemetry.addLine(String.format("QUEUE |   " + firstPos[1] + "," + firstPos[0] + " then " + secPos[1] + "," + secPos[0], null));
+        } else if (firstPos[0] != -1) {
+            telemetry.addLine(String.format("QUEUE |   " + firstPos[1] + "," + firstPos[0]));
+        } else {
             telemetry.addLine(String.format("QUEUE |   "));
 
         }
 
         //confirmation queue
-        if(confirmB && confirmA)
-        {
+        if (confirmB && confirmA) {
             telemetry.addLine(String.format("ROBOT RUNNING"));
-        }
-        else if(confirmB)
-        {
+        } else if (confirmB) {
             telemetry.addLine(String.format("CONFIRMED PLEASE WAIT"));
-        }
-        else if(colors[1].equals("") && firstPos[0]!=-1)
-        {
+        } else if (colors[1].equals("") && firstPos[0] != -1) {
             telemetry.addLine(String.format("UNCONFIRMED CHANGES"));
-        }
-        else if(colors[0].equals("") && colors[1].equals(""))
-        {
+        } else if (colors[0].equals("") && colors[1].equals("")) {
             telemetry.addLine(String.format("NO PIXELS LOADED"));
-        }
-        else
-        {
+        } else {
             telemetry.addLine(String.format("PIXELS READY TO GO"));
         }
 
     }
+
     public void makeGrid() { //WORKS
         for (int r = 0; r < outputArray.length; r++) {
             for (int c = 0; c < outputArray[1].length; c++) {
