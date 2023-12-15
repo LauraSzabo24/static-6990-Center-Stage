@@ -8,8 +8,8 @@ public class Mailbox
     public Mailbox()
     {
     }
-    public void setAutoEnd(double end){
-        autoEndHead = end;
+    public void setAutoEnd(Pose2d end){
+        currentPose = end;
     }
     public double getAutoEnd(){
         return autoEndHead;

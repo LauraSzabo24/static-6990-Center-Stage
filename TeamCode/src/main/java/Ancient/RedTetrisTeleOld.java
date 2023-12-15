@@ -1,4 +1,4 @@
-package TeleOp;
+package Ancient;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -22,14 +22,16 @@ import org.firstinspires.ftc.teamcode.drive.TeleOpAugmentedDriving;
 
 import Auto.Mailbox;
 
+//copied last 11/7/2023 12:47 am
+
 @TeleOp
-public class RedTetrisTele extends LinearOpMode {
+public class RedTetrisTeleOld extends LinearOpMode {
     //drivetrain
-    Pose2d poseEstimate;
+    IMU imu;
 
     //PID material
-    DcMotorEx slideMotorRight;
-    DcMotorEx slideMotorLeft;
+    // DcMotorEx slideMotorRight;
+    // DcMotorEx slideMotorLeft;
     private final FtcDashboard dashboard = FtcDashboard.getInstance();
 
 
@@ -44,12 +46,12 @@ public class RedTetrisTele extends LinearOpMode {
 
     //other
     private boolean confirmA;
-    private Servo clawServo, armLeftServo, armRightServo, airplaneServo, intakeLiftServo;
-    DcMotorEx intakeMotor;
+    //private Servo clawServo, armLeftServo, armRightServo, airplaneServo, intakeLiftServo;
+    // DcMotorEx intakeMotor;
 
     //mecanum drive stuff
-    private SampleMecanumDriveCancelable drive;
-    private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight;
+    //private SampleMecanumDriveCancelable drive;
+    //private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight;
 
 
     //button controls for DRIVER A
@@ -105,6 +107,10 @@ public class RedTetrisTele extends LinearOpMode {
     private boolean upReleased;
     private boolean boxRow;
 
+    //mail
+    IMU.Parameters parameters;
+    String dirTestIMU;
+
     //Finite State Machine
     public enum Mode
     {
@@ -139,7 +145,7 @@ public class RedTetrisTele extends LinearOpMode {
         dashboard.setTelemetryTransmissionInterval(25);
 
         //slide motors
-        slideMotorLeft = hardwareMap.get(DcMotorEx.class, "LeftSlide");
+        /*slideMotorLeft = hardwareMap.get(DcMotorEx.class, "LeftSlide");
         slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slideMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -165,26 +171,31 @@ public class RedTetrisTele extends LinearOpMode {
         motorFrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        //mailbox
+        //imu - field centric
         Mailbox mail = new Mailbox();
+        imu = hardwareMap.get(IMU.class, "imu");
+        parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        imu.initialize(parameters);*/
 
         //intake outake servos
         armInHome = true;
         pushPopInHome = true;
         clawInHome = true;
         intakeLiftInHome = true;
-        clawServo = hardwareMap.get(Servo.class, "claw");
+        /*clawServo = hardwareMap.get(Servo.class, "claw");
         armRightServo = hardwareMap.get(Servo.class, "armRightServo");
         armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
         airplaneServo = hardwareMap.get(Servo.class, "airplaneServo");
-        intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");
+        intakeLiftServo = hardwareMap.get(Servo.class, "intakeLiftServo");*/
 
         //intake motor
-        intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
+        /* intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");*/
 
         //arm into start position
-        armLeftServo.setPosition(0.99);
-        armRightServo.setPosition(0.01);
+        /*armLeftServo.setPosition(0.99);
+        armRightServo.setPosition(0.01);*/
     }
 
     public void driverBInitialize() {
@@ -194,7 +205,7 @@ public class RedTetrisTele extends LinearOpMode {
         //tetris material
         position1 = new double[]{-1,-1};
         position2 = new double[]{-1,-1};
-        outputArray = new String[12][14]; //original: 12 13 // new: 12 14
+        outputArray = new String[12][13]; //original: 12 13 // new: 12 14
         cursorX = 1;
         cursorY = 10;
         cursorFlash = 50;
@@ -239,40 +250,25 @@ public class RedTetrisTele extends LinearOpMode {
         initialize();
 
         //tetris - cancelable trajectories
-        drive = new SampleMecanumDriveCancelable(hardwareMap);
-        drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        drive.setPoseEstimate(Mailbox.currentPose);
+        //drive = new SampleMecanumDriveCancelable(hardwareMap);
+        //drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //drive.setPoseEstimate(Mailbox.currentPose);
         waitForStart();
         if (isStopRequested()) return;
 
-        poseEstimate = drive.getPoseEstimate();
-        // Print pose to telemetry
-        telemetry.addData("mode", state);
-        telemetry.addData("x", poseEstimate.getX());
-        telemetry.addData("y", poseEstimate.getY());
-        telemetry.addData("heading", poseEstimate.getHeading());
-
-        Trajectory path = drive.trajectoryBuilder(poseEstimate) //position[0]+5
-                .lineToLinearHeading(new Pose2d(0,45, Math.toRadians(90)))
-                .build();
-
-        telemetry.addData("ROBOT MOVING AUTO", poseEstimate);
-        drive.followTrajectoryAsync(path);
-        telemetry.update();
-
-       /* while(opModeIsActive() && !isStopRequested())
+        while(opModeIsActive() && !isStopRequested())
         {
             //tetris
-            poseEstimate = drive.getPoseEstimate();
+            //Pose2d poseEstimate = drive.getPoseEstimate();
             // Print pose to telemetry
-            telemetry.addData("mode", state);
+            /*telemetry.addData("mode", state);
             telemetry.addData("x", poseEstimate.getX());
             telemetry.addData("y", poseEstimate.getY());
             telemetry.addData("heading", poseEstimate.getHeading());
+            */
 
-
-            //mainLoop();
-        }*/
+            mainLoop();
+        }
     }
     public void initialize()
     {
@@ -288,7 +284,7 @@ public class RedTetrisTele extends LinearOpMode {
 
         //telemetry
         telemetry.addData("mode ", state);
-        telemetry.addData(" auto end - ", Mailbox.autoEndHead);
+        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", Mailbox.autoEndHead);
         //telemetry.addData("servo position in ", armLeftServo.getPosition());
 
         //updates
@@ -369,7 +365,7 @@ public class RedTetrisTele extends LinearOpMode {
     public void mainLoop() {
         telemetry.addData("mode ", state);
         //test - field centric
-        telemetry.addData(" auto end - ", Mailbox.autoEndHead);
+        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", Mailbox.autoEndHead);
 
         //button update
         updateDriverAButtons();
@@ -418,48 +414,23 @@ public class RedTetrisTele extends LinearOpMode {
         }
 
         //Tetris Pixel Placing Thing
-       if (confirmA && confirmB && state.equals(Mode.MANUAL)) {
-           double targetAHeading = Math.toRadians(90);
-           Vector2d targetAVector = new Vector2d((5),15); //y is the y to the board | x is the distance on board + to the board
-           Trajectory path = drive.trajectoryBuilder(poseEstimate) //position[0]+5
-                   .splineTo(targetAVector, targetAHeading)
-                   .build();
-
-           telemetry.addData("ROBOT MOVING AUTO", targetAVector);
-           drive.followTrajectoryAsync(path);
-
+        if (confirmA && confirmB && state.equals(Mode.MANUAL)) {
             state = Mode.AUTO;
             int[] place1 = firstPos;
             int[] place2 = secPos;
-           //moveToPose(position1);
-            //runPixelPlacing1(place1);
+            runPixelPlacing1(place1);
         }
 
-        /*if((state.equals(Mode.AUTO) || !drive.isBusy())) //bit suspicious
+        if((state.equals(Mode.AUTO)))// || !drive.isBusy()))) //bit suspicious
         {
             // If x is pressed, we break out of the automatic following
             if (gamepad1.x) {
-                drive.breakFollowing();
-                state = Mode.MANUAL;
+                //drive.breakFollowing();
+                /*state = Mode.MANUAL;
                 firstPos = new int[]{-1,-1};
                 secPos = new int[]{-1,-1};
                 confirmB = false;
-                confirmA = false;
-                /*if(secPos[0]!= -1)
-                {
-                    runPixelPlacing2(secPos);
-                }
-                else
-                {
-                    state = Mode.MANUAL;
-                    firstPos = new int[]{-1,-1};
-                    secPos = new int[]{-1,-1};
-                    confirmB = false;
-                    confirmA = false;
-                }*/
-            /*}
-
-            if (!drive.isBusy()) {
+                confirmA = false;*/
                 if(secPos[0]!= -1)
                 {
                     runPixelPlacing2(secPos);
@@ -474,7 +445,22 @@ public class RedTetrisTele extends LinearOpMode {
                 }
             }
 
-        }*/
+            /*if (!drive.isBusy()) {
+                if(secPos[0]!= -1)
+                {
+                    runPixelPlacing2(secPos);
+                }
+                else
+                {
+                    state = Mode.MANUAL;
+                    firstPos = new int[]{-1,-1};
+                    secPos = new int[]{-1,-1};
+                    confirmB = false;
+                    confirmA = false;
+                }
+            }*/
+
+        }
 
         if(state.equals(Mode.AUTO) || state.equals((Mode.MANUAL))) //take manual option out
         {
@@ -524,23 +510,23 @@ public class RedTetrisTele extends LinearOpMode {
 
         //pivots
         if (gamepad1.right_bumper) {
-            motorBackLeft.setPower(0);
+            /*motorBackLeft.setPower(0);
             motorBackRight.setPower(0);
             motorFrontLeft.setPower(1.5);//0.9
-            motorFrontRight.setPower(-1.5);
+            motorFrontRight.setPower(-1.5);*/
             telemetry.addLine(String.format("pivot right"));
 
         } else if (gamepad1.left_bumper) {
-            motorBackLeft.setPower(0);
+           /* motorBackLeft.setPower(0);
             motorBackRight.setPower(0);
             motorFrontLeft.setPower(-1.5);
-            motorFrontRight.setPower(1.5);
+            motorFrontRight.setPower(1.5);*/
             telemetry.addLine(String.format("pivot left"));
         }
 
         //intake spinner sucking vacuum cleaner thing
         if (gamepad1.a) {
-           // intakeMotor.setPower(0.6);
+            // intakeMotor.setPower(0.6);
             telemetry.addLine(String.format("powering vacuum"));
         } else if (gamepad1.x) {
             //intakeMotor.setPower(-0.6);
@@ -559,22 +545,49 @@ public class RedTetrisTele extends LinearOpMode {
     }
 
     public void drive() {
-        poseEstimate = drive.getPoseEstimate();
+       /* double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x;
+        double rx = gamepad1.right_stick_x;
 
-        Vector2d input = new Vector2d(
-                -((gamepad1.left_stick_y)),
-                -((gamepad1.left_stick_x)) // * multiply)/speed
-        ).rotated(-poseEstimate.getHeading() + Math.toRadians(90));
+        // This button choice was made so that it is hard to hit on accident,
+        // it can be freely changed based on preference.
+        // The equivalent button is start on Xbox-style controllers.
+        if (gamepad1.options) {
+            imu.resetYaw();
+        }
 
-        drive.setWeightedDrivePower(
-                new Pose2d(
-                        input.getX(),
-                        input.getY(),
-                        -gamepad1.right_stick_x
-                )
-        );
+        //strange math that somehow works
+        double autoEnd = Mailbox.autoEndHead;
+        if (Mailbox.autoEndHead > 300) {
+            autoEnd -= 360;
+        }
+        double botHeading = Math.toRadians(autoEnd) - ((2 * Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) - Math.toRadians(90));
 
-        drive.update();
+        telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
+        telemetry.addData("bot value", Math.toDegrees(botHeading));
+        // Rotate the movement direction counter to the bot's rotation
+        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+
+        rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        double frontLeftPower = (rotY + rotX + rx) / denominator;
+        double backLeftPower = (rotY - rotX + rx) / denominator;
+        double frontRightPower = (rotY - rotX - rx) / denominator;
+        double backRightPower = (rotY + rotX - rx) / denominator;
+        motorFrontLeft.setPower(multiply * frontLeftPower / speed);
+        motorBackLeft.setPower(multiply * backLeftPower / speed);
+        motorFrontRight.setPower(multiply * frontRightPower / speed);
+        motorBackRight.setPower(multiply * backRightPower / speed);
+        telemetry.addLine(String.format("setting motor powers to:"));
+        telemetry.addData("frontLeft ", frontLeftPower);
+        telemetry.addData("backLeft ", backLeftPower);
+        telemetry.addData("frontRight ", frontRightPower);
+        telemetry.addData("backRight ", backRightPower);*/
     }
 
 
@@ -585,28 +598,28 @@ public class RedTetrisTele extends LinearOpMode {
         //ALL DRIVER B CONTROLS
         if (gamepad2.dpad_up )//&& slideMotorLeft.getCurrentPosition() < 3500)
         {
-            slideMotorLeft.setPower(0.7);
-            slideMotorRight.setPower(0.7);
+            /*slideMotorLeft.setPower(0.7);
+            slideMotorRight.setPower(0.7);*/
             telemetry.addLine(String.format("slide goes up"));
         }
         if (gamepad2.dpad_down )//&& slideMotorLeft.getCurrentPosition() > 100)
         {
-            slideMotorLeft.setPower(-0.4);
-            slideMotorRight.setPower(-0.4);
+            /*slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);*/
             telemetry.addLine(String.format("slide goes down"));
         }
         if (!gamepad2.dpad_up ) //&& !gamepad2.dpad_down) //&& (Math.abs(targetPosition - slidePos)<15))
         {
-            slideMotorLeft.setPower(0);
-            slideMotorRight.setPower(0);
+           /* slideMotorLeft.setPower(0);
+            slideMotorRight.setPower(0);*/
             telemetry.addLine(String.format("slide on standby"));
         }
         if (gamepad2.dpad_left) {
             telemetry.addLine(String.format("slide goes full down"));
         }
 
-        telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
-        telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
+        // telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
+        //telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
 
 
         //hang
@@ -614,8 +627,8 @@ public class RedTetrisTele extends LinearOpMode {
             hanging = true;
         }
         if (hanging) {
-            slideMotorLeft.setPower(-0.4);
-            slideMotorRight.setPower(-0.4);
+           /* slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);*/
         }
 
         //flipping thing
@@ -623,14 +636,14 @@ public class RedTetrisTele extends LinearOpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = false;
-            armLeftServo.setPosition(0.95);
-            armRightServo.setPosition(0.05);
+            /*armLeftServo.setPosition(0.95);
+            armRightServo.setPosition(0.05);*/
         } else if (y2Released) {
             y2Released = false;
             y2Pressed = false;
             armInHome = true;
-            armLeftServo.setPosition(0);
-            armRightServo.setPosition(1);
+            /*armLeftServo.setPosition(0);
+            armRightServo.setPosition(1);*/
         }
 
         //Arm low position
@@ -639,15 +652,15 @@ public class RedTetrisTele extends LinearOpMode {
             x2Pressed = false;
             pushPopInHome = false;
 
-            armLeftServo.setPosition(0.7);
-            armRightServo.setPosition(0.3);
+            /*armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);*/
         } else if (x2Released) {
             x2Released = false;
             x2Pressed = false;
             pushPopInHome = true;
 
-            armLeftServo.setPosition(0.7);
-            armRightServo.setPosition(0.3);
+           /* armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);*/
         }
 
         //claw servo
@@ -655,21 +668,21 @@ public class RedTetrisTele extends LinearOpMode {
             a2Released = false;
             a2Pressed = false;
             clawInHome = false;
-            clawServo.setPosition(0);
+            //clawServo.setPosition(0);
         } else if (a2Released) {
             a2Released = false;
             a2Pressed = false;
             clawInHome = true;
-            clawServo.setPosition(0.3);
+            //clawServo.setPosition(0.3);
         }
 
         //airplane
         if (gamepad2.left_bumper && gamepad2.right_bumper) {
-           airplaneServo.setPosition(0.5);
+            // airplaneServo.setPosition(0.5);
         }
 
         //telemetry CAN DELETE LATERRRRR
-        telemetry.addData("servo is at", clawServo.getPosition());
+        // telemetry.addData("servo is at", clawServo.getPosition());
         telemetry.update();
         if (armInHome) {
             telemetry.addLine(String.format("arm in"));
@@ -754,11 +767,11 @@ public class RedTetrisTele extends LinearOpMode {
 
     public double convertX(int xCoor, int yCoor) //doesn't work
     {
-        double inches = 20; //distance to last x coordinate unindented
+        double inches = 17; //distance to last x coordinate unindented
         if(xCoor%2==1) //indented
         {
             inches -= 1.5; //distance between indented and unindented
-            for(int i=13; i>xCoor; i--)
+            for(int i=12; i>xCoor; i--)
             {
                 if(i%2==1)
                 {
@@ -767,8 +780,7 @@ public class RedTetrisTele extends LinearOpMode {
             }
         }
         else{
-            inches -=3; //idk it fixed it
-            for(int i=13; i>xCoor; i--)
+            for(int i=12; i>xCoor; i--)
             {
                 if(i%2==0)
                 {
@@ -776,8 +788,7 @@ public class RedTetrisTele extends LinearOpMode {
                 }
             }
         }
-        double meepMeepUnit = 1; //inches in meep meepian
-        return inches * meepMeepUnit;
+        return inches;
     }
 
     public double convertY(int yCoor) //seems to work
@@ -789,14 +800,7 @@ public class RedTetrisTele extends LinearOpMode {
         }
         for(int i=10; i>yCoor; i--)
         {
-            if((yCoor%2==1) && (i%2==1)) //indented
-            {
-                inches += 4; //height between two pixels indented
-            }
-            else if((yCoor%2==0) && (i%2==0)) //indented
-            {
-                inches += 4; //height between two pixels unindented
-            }
+            inches += 3; //height of one pixel
         }
         double slideValue = 1; // 1 inch = ? slide value
         double initialSlideValue = 0; //0 position for slides
@@ -833,13 +837,13 @@ public class RedTetrisTele extends LinearOpMode {
     public void moveToPose(double[] position)
     {
         double targetAHeading = Math.toRadians(90);
-        Vector2d targetAVector = new Vector2d((5),15); //y is the y to the board | x is the distance on board + to the board
-        Trajectory path = drive.trajectoryBuilder(poseEstimate) //position[0]+5
+        Vector2d targetAVector = new Vector2d((position[0]+5),15); //y is the y to the board | x is the distance on board + to the board
+/*
+        Trajectory traj1 = drive.trajectoryBuilder(poseEstimate)
                 .splineTo(targetAVector, targetAHeading)
                 .build();
 
-        telemetry.addData("ROBOT ON THE MODE", targetAVector);
-        drive.followTrajectoryAsync(path);
+        drive.followTrajectoryAsync(traj1);*/
     }
 
     public void getColors() {
@@ -852,7 +856,7 @@ public class RedTetrisTele extends LinearOpMode {
             previousOutput = outputArray[cursorY][cursorX];
         }
         cursorFlash--;
-        if (cursorFlash > 3) {
+        if (cursorFlash > 15) {
             outputArray[cursorY][cursorX] = "◼"; //⬛ █◼
         } else {
             outputArray[cursorY][cursorX] = previousOutput;
@@ -898,7 +902,7 @@ public class RedTetrisTele extends LinearOpMode {
             leftReleased = true;
         }
         //right
-        if (gamepad2.dpad_right && cursorX < 13) { //12
+        if (gamepad2.dpad_right && cursorX < 12) {
             rightPressed = true;
         } else if (rightPressed) {
             rightReleased = true;
@@ -938,11 +942,11 @@ public class RedTetrisTele extends LinearOpMode {
             if (cursorX - 1 > 1) {
                 cursorX -= 2;
             }
-        } else if (rightReleased && cursorX < 13) { //12
+        } else if (rightReleased && cursorX < 12) {
             rightPressed = false;
             rightReleased = false;
             outputArray[cursorY][cursorX] = previousOutput;
-            if (cursorX + 1 < 13) {
+            if (cursorX + 1 < 12) {
                 cursorX += 2;
             }
         } else if (downReleased && cursorY < 10) {
@@ -950,14 +954,9 @@ public class RedTetrisTele extends LinearOpMode {
             downReleased = false;
             outputArray[cursorY][cursorX] = previousOutput;
             cursorY++;
-            if(cursorX<12) {
-                if (boxRow) {
-                    cursorX++;
-                } else {
-                    cursorX--;
-                }
-            }
-            else {
+            if (boxRow) {
+                cursorX++;
+            } else {
                 cursorX--;
             }
         } else if (upReleased && cursorY >= 1) {
@@ -965,14 +964,9 @@ public class RedTetrisTele extends LinearOpMode {
             upReleased = false;
             outputArray[cursorY][cursorX] = previousOutput;
             cursorY--;
-            if(cursorX<12) {
-                if (boxRow) {
-                    cursorX++;
-                } else {
-                    cursorX--;
-                }
-            }
-            else {
+            if (boxRow) {
+                cursorX++;
+            } else {
                 cursorX--;
             }
         }

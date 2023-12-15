@@ -264,7 +264,7 @@ public class BlueFar extends LinearOpMode {
 
         //mailbox
         Mailbox mail =  new Mailbox();
-        mail.setAutoEnd(Math.toDegrees(drive.getExternalHeading()));
+        mail.setAutoEnd(drive.getPoseEstimate());
 
     }
 }

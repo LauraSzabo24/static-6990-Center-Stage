@@ -67,6 +67,11 @@ public class RedFar extends LinearOpMode {
         //purple pixel
         TrajectorySequence right = drive.trajectorySequenceBuilder(startPose)
                 .lineToLinearHeading(new Pose2d(-10,-22,Math.toRadians(-120)))
+                .addDisplacementMarker(() -> {
+                    //mailbox
+                    Mailbox mail =  new Mailbox();
+                    mail.setAutoEnd(drive.getPoseEstimate());
+                })
                 .strafeRight(15)
                 .forward(5)
                 //purple pixel
@@ -267,7 +272,7 @@ public class RedFar extends LinearOpMode {
 
         //mailbox
         Mailbox mail =  new Mailbox();
-        mail.setAutoEnd(Math.toDegrees(drive.getExternalHeading()));
+        mail.setAutoEnd(drive.getPoseEstimate());
 
     }
 }
