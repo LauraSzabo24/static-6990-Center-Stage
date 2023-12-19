@@ -21,6 +21,7 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDriveCancelable;
 import org.firstinspires.ftc.teamcode.drive.TeleOpAugmentedDriving;
 
 import Auto.Mailbox;
+import TeleOp.Tetris.TestAutoTele;
 
 @TeleOp
 public class RedTetrisTele extends LinearOpMode {
@@ -242,37 +243,24 @@ public class RedTetrisTele extends LinearOpMode {
         drive = new SampleMecanumDriveCancelable(hardwareMap);
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.setPoseEstimate(Mailbox.currentPose);
+
         waitForStart();
         if (isStopRequested()) return;
 
-        poseEstimate = drive.getPoseEstimate();
+        poseEstimate = Mailbox.currentPose;
+
         // Print pose to telemetry
         telemetry.addData("mode", state);
         telemetry.addData("x", poseEstimate.getX());
         telemetry.addData("y", poseEstimate.getY());
         telemetry.addData("heading", poseEstimate.getHeading());
-
-        Trajectory path = drive.trajectoryBuilder(poseEstimate) //position[0]+5
-                .lineToLinearHeading(new Pose2d(0,45, Math.toRadians(90)))
-                .build();
-
-        telemetry.addData("ROBOT MOVING AUTO", poseEstimate);
-        drive.followTrajectoryAsync(path);
         telemetry.update();
 
-       /* while(opModeIsActive() && !isStopRequested())
+       while(opModeIsActive() && !isStopRequested())
         {
-            //tetris
             poseEstimate = drive.getPoseEstimate();
-            // Print pose to telemetry
-            telemetry.addData("mode", state);
-            telemetry.addData("x", poseEstimate.getX());
-            telemetry.addData("y", poseEstimate.getY());
-            telemetry.addData("heading", poseEstimate.getHeading());
-
-
-            //mainLoop();
-        }*/
+            altLoop();
+        }
     }
     public void initialize()
     {
@@ -310,7 +298,7 @@ public class RedTetrisTele extends LinearOpMode {
         switch (state) {
             case MANUAL:
                 //Color Camera
-                if (colors[0].equals("") && colors[1].equals("") && confirmB && confirmA) {
+                if (colors[0].equals("") && colors[1].equals("")) {
                     getColors();
                 }
                 //Telemetry
@@ -337,31 +325,38 @@ public class RedTetrisTele extends LinearOpMode {
                     confirmA = true;
                 }
                 //Driver B
+                printAll();
                 updateTetrisThing();
                 //Tetris Pixel Placing
                 if (confirmA && confirmB) {
-                    state = Mode.AUTO;
                     int[] place1 = firstPos;
                     int[] place2 = secPos;
                     runPixelPlacing1(place1);
-                    state = Mode.MANUAL;
-                    firstPos = new int[]{-1,-1};
-                    secPos = new int[]{-1,-1};
                     confirmB = false;
                     confirmA = false;
+                    firstPos = new int[]{-1,-1};
+                    secPos = new int[]{-1,-1};
                 }
+                break;
             case AUTO:
                 // Telemetry
                 telemetry.addLine(String.format("p1 x coor " + position1[0]));
                 telemetry.addLine(String.format("p1 y coor " + position1[1]));
                 telemetry.addLine(String.format("p2 x coor " + position2[0]));
                 telemetry.addLine(String.format("p2 y coor " + position2[1]));
+                /*if (!drive.isBusy()) {
+                    state = Mode.MANUAL;
+                }
+                if (gamepad1.x) {
+                    drive.breakFollowing();
+                    state = Mode.MANUAL;
+                }*/
+                break;
             case EMERGENCY:
                 telemetry.addLine(String.format("EMERGENCYYYYYYYY MODEEEEEEEEEE"));
                 updateDriverBButtons();
                 emergencyModeControls();
-            default:
-                //nothing
+                break;
         }
         telemetry.update();
     }
@@ -540,13 +535,13 @@ public class RedTetrisTele extends LinearOpMode {
 
         //intake spinner sucking vacuum cleaner thing
         if (gamepad1.a) {
-           // intakeMotor.setPower(0.6);
+            intakeMotor.setPower(0.6);
             telemetry.addLine(String.format("powering vacuum"));
         } else if (gamepad1.x) {
-            //intakeMotor.setPower(-0.6);
+            intakeMotor.setPower(-0.6);
             telemetry.addLine(String.format("powering vacuum BACK"));
         } else {
-            //intakeMotor.setPower(0);
+            intakeMotor.setPower(0);
             telemetry.addLine(String.format("vacuum on standby"));
         }
 
@@ -562,8 +557,8 @@ public class RedTetrisTele extends LinearOpMode {
         poseEstimate = drive.getPoseEstimate();
 
         Vector2d input = new Vector2d(
-                -((gamepad1.left_stick_y)),
-                -((gamepad1.left_stick_x)) // * multiply)/speed
+                -((gamepad1.left_stick_y)* multiply)/(speed+2),
+                -((gamepad1.left_stick_x)* multiply)/(speed+2)
         ).rotated(-poseEstimate.getHeading() + Math.toRadians(90));
 
         drive.setWeightedDrivePower(
@@ -576,7 +571,6 @@ public class RedTetrisTele extends LinearOpMode {
 
         drive.update();
     }
-
 
     //EMERGENCY MODE THINGS HEREEE
     public void emergencyModeControls() {
@@ -832,14 +826,12 @@ public class RedTetrisTele extends LinearOpMode {
 
     public void moveToPose(double[] position)
     {
-        double targetAHeading = Math.toRadians(90);
-        Vector2d targetAVector = new Vector2d((5),15); //y is the y to the board | x is the distance on board + to the board
         Trajectory path = drive.trajectoryBuilder(poseEstimate) //position[0]+5
-                .splineTo(targetAVector, targetAHeading)
+                .lineToLinearHeading(new Pose2d(10,20))
                 .build();
 
-        telemetry.addData("ROBOT ON THE MODE", targetAVector);
         drive.followTrajectoryAsync(path);
+        state = Mode.AUTO;
     }
 
     public void getColors() {
