@@ -153,7 +153,7 @@ public class RedTetrisTele extends LinearOpMode {
         slideMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //drive motors
-        motorFrontLeft = (DcMotorEx) hardwareMap.dcMotor.get("FL");
+        /*motorFrontLeft = (DcMotorEx) hardwareMap.dcMotor.get("FL");
         motorBackLeft = (DcMotorEx) hardwareMap.dcMotor.get("BL");
         motorFrontRight = (DcMotorEx) hardwareMap.dcMotor.get("FR");
         motorBackRight = (DcMotorEx) hardwareMap.dcMotor.get("BR");
@@ -164,7 +164,7 @@ public class RedTetrisTele extends LinearOpMode {
         motorBackRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         motorFrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);*/
 
         //mailbox
         Mailbox mail = new Mailbox();
@@ -236,8 +236,16 @@ public class RedTetrisTele extends LinearOpMode {
         //color camera stuff goes in here
     }
 
+    public void initialize()
+    {
+        driverAInitialize();
+        driverBInitialize();
+        cameraInit();
+        makeGrid();
+    }
+
     public void runOpMode() throws InterruptedException {
-        initialize();
+       // initialize();
 
         //tetris - cancelable trajectories
         drive = new SampleMecanumDriveCancelable(hardwareMap);
@@ -247,31 +255,71 @@ public class RedTetrisTele extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
+        //get the ending position of auto
         poseEstimate = Mailbox.currentPose;
 
         // Print pose to telemetry
+        telemetry.addLine("pose estimate");
         telemetry.addData("mode", state);
         telemetry.addData("x", poseEstimate.getX());
         telemetry.addData("y", poseEstimate.getY());
         telemetry.addData("heading", poseEstimate.getHeading());
         telemetry.update();
 
+        //while op mode is active get the current pose and run the loop
        while(opModeIsActive() && !isStopRequested())
         {
             poseEstimate = drive.getPoseEstimate();
+            drive.update();
             altLoop();
         }
-    }
-    public void initialize()
-    {
-        driverAInitialize();
-        driverBInitialize();
-        cameraInit();
-        makeGrid();
     }
 
     public void altLoop()
     {
+        switch (state) {
+            case MANUAL:
+                drive.setWeightedDrivePower(
+                        new Pose2d(
+                                -gamepad1.left_stick_y,
+                                -gamepad1.left_stick_x,
+                                -gamepad1.right_stick_x
+                        )
+                );
+
+                if (gamepad1.a) {
+                    Trajectory traj1 = drive.trajectoryBuilder(poseEstimate)
+                            .splineTo(new Vector2d(10,20), 20)
+                            .build();
+
+                    drive.followTrajectoryAsync(traj1);
+
+                    state = Mode.AUTO;
+                } else if (gamepad1.b) {
+                    Trajectory traj1 = drive.trajectoryBuilder(poseEstimate)
+                            .lineTo(new Vector2d(10,20))
+                            .build();
+
+                    drive.followTrajectoryAsync(traj1);
+
+                    state = Mode.AUTO;
+                }
+                break;
+            case AUTO:
+                if (gamepad1.x) {
+                    drive.breakFollowing();
+                    state = Mode.MANUAL;
+                }
+                if (!drive.isBusy()) {
+                    state = Mode.MANUAL;
+                }
+                break;
+        }
+    }
+
+    public void Loop()
+    {
+        //slow loop down
         sleep(40);
 
         //telemetry
@@ -282,7 +330,7 @@ public class RedTetrisTele extends LinearOpMode {
         //updates
         updateDriverAButtons();
 
-        //transfer to emergency
+        //transfer to emergency | both bumpers and any of the directions on the pad
         if (leftBumperReleased && rightBumperReleased && (gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_down)) {
             leftBumperReleased = false;
             leftBumperPressed = false;
@@ -295,12 +343,14 @@ public class RedTetrisTele extends LinearOpMode {
             }
         }
 
+        //change behaviour based on current state
         switch (state) {
             case MANUAL:
-                //Color Camera
+                //Color Camera | or in case of not using color camera it just refills the bar with pixels
                 if (colors[0].equals("") && colors[1].equals("")) {
                     getColors();
                 }
+
                 //Telemetry
                 if (armInHome) {
                     telemetry.addLine(String.format("arm in"));
@@ -317,41 +367,58 @@ public class RedTetrisTele extends LinearOpMode {
                 } else {
                     telemetry.addLine(String.format("push pop out"));
                 }
-                //Driver A
+
+                //Driver A | updates controls and checks for confirmation
                 updateDriverAControls();
                 if (b1Released) {
                     b1Released = false;
                     b1Pressed = false;
                     confirmA = true;
                 }
-                //Driver B
+
+                //Driver B | updates tetris and prints
                 printAll();
                 updateTetrisThing();
-                //Tetris Pixel Placing
+
+                //Tetris Pixel Placing | checks for confirmation of both drivers | runs first position only
                 if (confirmA && confirmB) {
-                    int[] place1 = firstPos;
+                    confirmA = false;
+                    confirmB = false;
+                    Trajectory path = drive.trajectoryBuilder(poseEstimate) //position[0]+5
+                            .lineToLinearHeading(new Pose2d(10,20))
+                            .build();
+
+                    drive.followTrajectoryAsync(path);
+                    state = Mode.AUTO;
+                    /*int[] place1 = firstPos;
                     int[] place2 = secPos;
                     runPixelPlacing1(place1);
                     confirmB = false;
                     confirmA = false;
                     firstPos = new int[]{-1,-1};
-                    secPos = new int[]{-1,-1};
+                    secPos = new int[]{-1,-1};*/
                 }
                 break;
+
             case AUTO:
                 // Telemetry
-                telemetry.addLine(String.format("p1 x coor " + position1[0]));
-                telemetry.addLine(String.format("p1 y coor " + position1[1]));
-                telemetry.addLine(String.format("p2 x coor " + position2[0]));
-                telemetry.addLine(String.format("p2 y coor " + position2[1]));
-                /*if (!drive.isBusy()) {
+                telemetry.addLine("RUNNING AUTO MODE");
+                telemetry.addLine(String.format("pos1 x coor " + position1[0]));
+                telemetry.addLine(String.format("pos1 y coor " + position1[1]));
+                telemetry.addLine(String.format("pos2 x coor " + position2[0]));
+                telemetry.addLine(String.format("pos2 y coor " + position2[1]));
+
+                //Return to manual once trajectory is done
+                if (!drive.isBusy()) {
                     state = Mode.MANUAL;
                 }
+                //Emergency Exit | driver A press x button
                 if (gamepad1.x) {
                     drive.breakFollowing();
                     state = Mode.MANUAL;
-                }*/
+                }
                 break;
+
             case EMERGENCY:
                 telemetry.addLine(String.format("EMERGENCYYYYYYYY MODEEEEEEEEEE"));
                 updateDriverBButtons();
@@ -361,6 +428,7 @@ public class RedTetrisTele extends LinearOpMode {
         telemetry.update();
     }
 
+    //Old Loop | without switch case, more unorganized
     public void mainLoop() {
         telemetry.addData("mode ", state);
         //test - field centric
@@ -500,9 +568,9 @@ public class RedTetrisTele extends LinearOpMode {
         telemetry.update();
     }
 
-    //DRIVER A NORMAL CONTROLS FROM HEREEEE
+    //DRIVER A NORMAL CONTROLS
     public void updateDriverAControls() {
-        //mecanum
+        //drivetrain changes in speed | right trigger fast | left trigger slow
         if (gamepad1.right_trigger > 0) {
             speed = 4;
         } else {
@@ -517,7 +585,7 @@ public class RedTetrisTele extends LinearOpMode {
         }
         drive();
 
-        //pivots
+        //pivots | left and right bumper
         if (gamepad1.right_bumper) {
             motorBackLeft.setPower(0);
             motorBackRight.setPower(0);
@@ -533,19 +601,19 @@ public class RedTetrisTele extends LinearOpMode {
             telemetry.addLine(String.format("pivot left"));
         }
 
-        //intake spinner sucking vacuum cleaner thing
+        //intake spinner | A button in | X button out
         if (gamepad1.a) {
             intakeMotor.setPower(0.6);
-            telemetry.addLine(String.format("powering vacuum"));
+            telemetry.addLine(String.format("powering vacuum cleaner"));
         } else if (gamepad1.x) {
             intakeMotor.setPower(-0.6);
-            telemetry.addLine(String.format("powering vacuum BACK"));
+            telemetry.addLine(String.format("powering vacuum cleaner BACK"));
         } else {
             intakeMotor.setPower(0);
-            telemetry.addLine(String.format("vacuum on standby"));
+            telemetry.addLine(String.format("vacuum cleaner on standby"));
         }
 
-        //telemetry CAN DELETE LATERRRR
+        //More Telemetry
         if (intakeLiftInHome) {
             telemetry.addLine(String.format("intake lifted"));
         } else {
@@ -554,6 +622,8 @@ public class RedTetrisTele extends LinearOpMode {
     }
 
     public void drive() {
+        //Field Centric Driving
+
         poseEstimate = drive.getPoseEstimate();
 
         Vector2d input = new Vector2d(
@@ -572,7 +642,7 @@ public class RedTetrisTele extends LinearOpMode {
         drive.update();
     }
 
-    //EMERGENCY MODE THINGS HEREEE
+    //EMERGENCY MODE CONTROLS
     public void emergencyModeControls() {
         updateDriverAControls();
 
@@ -603,7 +673,7 @@ public class RedTetrisTele extends LinearOpMode {
         telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
 
 
-        //hang
+        //hang | Driver B stick buttons
         if (gamepad2.right_stick_button || gamepad2.left_stick_button) {
             hanging = true;
         }
@@ -612,7 +682,7 @@ public class RedTetrisTele extends LinearOpMode {
             slideMotorRight.setPower(-0.4);
         }
 
-        //flipping thing
+        //flipping thing | Y button
         if (y2Released && armInHome) {
             y2Released = false;
             y2Pressed = false;
@@ -627,7 +697,7 @@ public class RedTetrisTele extends LinearOpMode {
             armRightServo.setPosition(1);
         }
 
-        //Arm low position
+        //Arm low position | X button
         if (x2Released && pushPopInHome) {
             x2Released = false;
             x2Pressed = false;
@@ -644,7 +714,7 @@ public class RedTetrisTele extends LinearOpMode {
             armRightServo.setPosition(0.3);
         }
 
-        //claw servo
+        //claw servo | A button
         if (a2Released && clawInHome) {
             a2Released = false;
             a2Pressed = false;
@@ -657,12 +727,12 @@ public class RedTetrisTele extends LinearOpMode {
             clawServo.setPosition(0.3);
         }
 
-        //airplane
+        //airplane | Bumpers
         if (gamepad2.left_bumper && gamepad2.right_bumper) {
            airplaneServo.setPosition(0.5);
         }
 
-        //telemetry CAN DELETE LATERRRRR
+        //Telemetry
         telemetry.addData("servo is at", clawServo.getPosition());
         telemetry.update();
         if (armInHome) {
@@ -721,7 +791,6 @@ public class RedTetrisTele extends LinearOpMode {
             leftBumperReleased = true;
         }
     }
-
     public void updateDriverBButtons() {
         //x
         if (gamepad2.x) {
@@ -744,9 +813,10 @@ public class RedTetrisTele extends LinearOpMode {
     }
 
 
-    //TEEEEEEEEEETTTTTTTTTTTTTTTTTTTTTTTTTTRRRRRRRRRRRRRIIIIIIIIIIIIIISSSSSSSSSSSSSSSSSSSSSSSSSSSS
+    //TEEEEEEEEEETTTTTTTTTTTTTTTTTTTTTTTTTTRRRRRRRRRRRRRIIIIIIIIIIIIIISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
-    public double convertX(int xCoor, int yCoor) //doesn't work
+    //Convert Coordinate to Position
+    public double convertX(int xCoor, int yCoor) //works???
     {
         double inches = 20; //distance to last x coordinate unindented
         if(xCoor%2==1) //indented
@@ -773,7 +843,6 @@ public class RedTetrisTele extends LinearOpMode {
         double meepMeepUnit = 1; //inches in meep meepian
         return inches * meepMeepUnit;
     }
-
     public double convertY(int yCoor) //seems to work
     {
         double inches = 10.5; //height for first unindented pixel
@@ -797,6 +866,7 @@ public class RedTetrisTele extends LinearOpMode {
         return (inches * slideValue) + initialSlideValue;
     }
 
+    //Places First Pixel
     public void runPixelPlacing1(int[] target1) {
         position1 = new double[2];
 
@@ -804,28 +874,32 @@ public class RedTetrisTele extends LinearOpMode {
             position1[0] = convertX(target1[1], target1[0]);
             position1[1] = convertY(target1[0]);
 
+            //Move To Coordinate
             moveToPose(position1);
-            //moves slides while going
-            //push pixel out
+            //Move Slides
+            //Place Pixel
         }
-
     }
-    public void runPixelPlacing2(int[] target1) {
+
+    //Places Second Pixel
+    public void runPixelPlacing2(int[] target2) {
         position2 = new double[2];
 
-        if (target1[0] != -1) {
-            position2[0] = convertX(target1[1], target1[0]);
-            position2[1] = convertY(target1[0]);
+        if (target2[0] != -1) {
+            position2[0] = convertX(target2[1], target2[0]);
+            position2[1] = convertY(target2[0]);
 
+            //Move To Coordinate
             moveToPose(position2);
-            //moves slides while going
-            //push pixel out
+            //Move Slides
+            //Place Pixel
         }
-
     }
 
+    //Moves to Coordinate
     public void moveToPose(double[] position)
     {
+        //Test move to position by moving to a random position
         Trajectory path = drive.trajectoryBuilder(poseEstimate) //position[0]+5
                 .lineToLinearHeading(new Pose2d(10,20))
                 .build();
@@ -834,11 +908,14 @@ public class RedTetrisTele extends LinearOpMode {
         state = Mode.AUTO;
     }
 
+    //Refills Pixels in Bar
     public void getColors() {
         colors = new String[]{"@", "@"}; //⬜ 🟪 🟩 🟨
     }
 
-    public void updateTetrisThing() {
+    //PRINTS OUT TETRIS TO TELEMETRY
+    public void updateTetrisThing() //WORKS
+    {
         //cursor flashing
         if (outputArray[cursorY][cursorX] != "◼") {
             previousOutput = outputArray[cursorY][cursorX];
@@ -880,7 +957,6 @@ public class RedTetrisTele extends LinearOpMode {
             confirmB = true;
         }
     }
-
     public void cursorUpdate() //WORKS
     {
         //left
@@ -969,7 +1045,6 @@ public class RedTetrisTele extends LinearOpMode {
             }
         }
     }
-
     public void isBoxRow() //WORKS
     {
         if (cursorY % 2 == 0) {
@@ -978,8 +1053,8 @@ public class RedTetrisTele extends LinearOpMode {
             boxRow = false;
         }
     }
-
-    public void printAll() {
+    public void printAll() //WORKS
+    {
         //colors avaliable
         telemetry.addLine(String.format("                    1      2"));
         telemetry.addLine(String.format("PIXELS  - " + colors[0] + "      " + colors[1]));
@@ -1018,8 +1093,8 @@ public class RedTetrisTele extends LinearOpMode {
         }
 
     }
-
-    public void makeGrid() { //WORKS
+    public void makeGrid() //WORKS
+    {
         for (int r = 0; r < outputArray.length; r++) {
             for (int c = 0; c < outputArray[1].length; c++) {
                 if (c != 0 && c != 14) {
