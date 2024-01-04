@@ -19,14 +19,14 @@ import Auto.Mailbox;
 
 @TeleOp
 public class TetrisTest extends LinearOpMode {
-    //stuff I don't need
+    //GLOBAL VARIABLES
+    //region TEMPORARY
     Vector2d targetAVector = new Vector2d(45, 45);
     double targetAHeading = Math.toRadians(90);
     Vector2d targetBVector = new Vector2d(-15, 25);
     double targetAngle = Math.toRadians(45);
-
-
-    //General
+    //endregion
+    //region GENERAL
     enum Mode {
         MANUAL,
         AUTO,
@@ -35,13 +35,13 @@ public class TetrisTest extends LinearOpMode {
     }
     Mode state = Mode.MANUAL;
     Pose2d poseEstimate;
-
-    //MOTORS AND SERVOS
+    //endregion
+    //region MOTORS AND SERVOS
     ModifiedMecanumDrive drive;
     private Servo clawServo, armLeftServo, armRightServo, airplaneServo;
     DcMotorEx intakeMotor, slideMotorLeft, slideMotorRight;
-
-    //Button controls for DRIVER A
+    //endregion
+    //region DRIVER A BUTTON CONTROLS
     private boolean a1Pressed;
     private boolean a1Released;
     private boolean b1Pressed;
@@ -54,8 +54,8 @@ public class TetrisTest extends LinearOpMode {
     private boolean leftBumperPressed;
     private boolean rightBumperReleased;
     private boolean rightBumperPressed;
-
-    //Button controls for DRIVER B
+    //endregion
+    //region DRIVER B BUTTON CONTROLS
     private boolean a2Pressed;
     private boolean a2Released;
     private boolean b2Pressed;
@@ -64,8 +64,8 @@ public class TetrisTest extends LinearOpMode {
     private boolean x2Released;
     private boolean y2Pressed;
     private boolean y2Released;
-
-    //DRIVER B material
+    //endregion
+    //region DRIVER B VARIABLES
     private static String[][] outputArray;
     private int cursorX;
     private int cursorY;
@@ -75,11 +75,10 @@ public class TetrisTest extends LinearOpMode {
     private boolean confirmB;
     private String[] colors;
     private String previousOutput;
-
     private double[] position1;
     private double[] position2;
-
-    //Cursor movement DRIVER B
+    //endregion
+    //region CURSER MOVEMENT
     private boolean leftPressed;
     private boolean leftReleased;
     private boolean rightPressed;
@@ -89,8 +88,8 @@ public class TetrisTest extends LinearOpMode {
     private boolean upPressed;
     private boolean upReleased;
     private boolean boxRow;
-
-    //DRIVER A material
+    //endregion
+    //region DRIVER A VARIABLES
     private double speed;
     private double multiply;
     private boolean armInHome;
@@ -98,13 +97,17 @@ public class TetrisTest extends LinearOpMode {
     private boolean pushPopInHome;
     private boolean intakeLiftInHome;
     private boolean confirmA;
+    //endregion
 
+
+    //region MAIN
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() throws InterruptedException
+    {
+        //INITIALIZE
         drive = new ModifiedMecanumDrive(hardwareMap);
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.setPoseEstimate(Mailbox.currentPose);
-
         driverAInitialize();
         driverBInitialize();
 
@@ -112,51 +115,55 @@ public class TetrisTest extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive() && !isStopRequested()) {
-            //mainLoop();
-
-            //drivetrain changes in speed | right trigger fast | left trigger slow
-            if (gamepad1.right_trigger > 0) {
-                speed = 4;
-            } else {
-                speed = 2;
-            }
-            if (gamepad1.left_trigger > 0) {
-                speed = 2;
-                multiply = 3;
-            } else {
-                speed = 2;
-                multiply = 1;
-            }
-
-            driving();
+            mainLoop();
         }
     }
 
     public void mainLoop()
     {
-        //updates
+        //UPDATES
         updateDriverAButtons();
         updateDriverBButtons();
         drive.update();
+        telemetry.update();
         poseEstimate = drive.getPoseEstimate();
 
-        //Telemetry
+        //TELEMETRY
         telemetry.addData("mode", state);
         telemetry.addData("x", poseEstimate.getX());
         telemetry.addData("y", poseEstimate.getY());
         telemetry.addData("heading", poseEstimate.getHeading());
-        telemetry.update();
+        telemetry.addData("isDriveBusy ", drive.isBusy());
+
+        //TRANSFER TO EMERGENCY | both bumpers and any of the directions on the pad
+        if (leftBumperReleased && rightBumperReleased && (gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_down)) {
+            leftBumperReleased = false;
+            leftBumperPressed = false;
+            rightBumperReleased = false;
+            rightBumperPressed = false;
+            if (state.equals(Mode.EMERGENCY)) {
+                state = Mode.MANUAL;
+            } else {
+                state = Mode.EMERGENCY;
+            }
+        }
 
         switch (state) {
             case MANUAL:
-                driving();
+                //DRIVER A
+                updateDriverAControls();
 
-                //Driver B | updates tetris and prints
+                //TRANSFER TO HANGING | Driver B stick buttons
+                if (gamepad2.right_stick_button || gamepad2.left_stick_button) {
+                    state = Mode.HANGING;
+                }
+
+                //DRIVER B | updates tetris and prints
                 printAll();
                 updateTetrisThing();
 
-                //test trajectories
-                /*if (gamepad1.a) {
+                //TEST TRAJECTORIES
+                if (gamepad1.a) {
                     Trajectory traj1 = drive.trajectoryBuilder(poseEstimate)
                             .splineTo(targetAVector, targetAHeading)
                             .build();
@@ -164,48 +171,197 @@ public class TetrisTest extends LinearOpMode {
                     drive.followTrajectoryAsync(traj1);
 
                     state = Mode.AUTO;
-                }*/
+                }
                 break;
             case AUTO:
-                /*if (gamepad1.x) {
+                if (gamepad1.x) {
                     drive.breakFollowing();
                     state = Mode.MANUAL;
                 }
                 if (!drive.isBusy()) {
                     state = Mode.MANUAL;
-                }*/
+                }
                 break;
             case EMERGENCY:
+                telemetry.addLine(String.format("EMERGENCY MODE/n START DRIVING"));
+                emergencyModeControls();
+
+                //TRANSFER TO HANGING | Driver B stick buttons
+                if (gamepad2.right_stick_button || gamepad2.left_stick_button) {
+                    state = Mode.HANGING;
+                }
                 break;
             case HANGING:
+                telemetry.addLine(String.format("HANGING"));
+                slideMotorLeft.setPower(-0.4);
+                slideMotorRight.setPower(-0.4);
                 break;
         }
     }
+    //endregion
 
-    //DRIVER A
-    public void driving() {
-        //Field Centric Driving
+    //region DRIVER A CONTROLS
+    public void driving() //Field Centric Driving
+    {
+        //drivetrain changes in speed | right trigger slow | left trigger fast
+        if (gamepad1.right_trigger > 0) {
+            multiply = 0.01;
+            speed = 3;
+        } else {
+            multiply = 0.5;
+            speed = 1;
+        }
+        if (gamepad1.left_trigger > 0) {
+            multiply = 1;
+        } else {
+            multiply = 0.5;
+        }
 
         poseEstimate = drive.getPoseEstimate();
 
         Vector2d input = new Vector2d(
-                -((gamepad1.left_stick_y)* multiply)/(speed+2),
-                -((gamepad1.left_stick_x)* multiply)/(speed+2)
-        ).rotated(-poseEstimate.getHeading() + Math.toRadians(90));
+                -((gamepad1.left_stick_y)* multiply)/speed,
+                -((gamepad1.left_stick_x)* multiply)/speed
+        ).rotated(-poseEstimate.getHeading() + Math.toRadians(240));
 
         drive.setWeightedDrivePower(
                 new Pose2d(
                         input.getX(),
                         input.getY(),
-                        -gamepad1.right_stick_x
+                        ((gamepad1.right_stick_x * multiply)/speed)
                 )
         );
 
         drive.update();
     }
+    public void updateDriverAControls()
+    {
+        driving();
+
+        //intake spinner | A button in | X button out
+        if (gamepad1.a) {
+            intakeMotor.setPower(0.6);
+            telemetry.addLine(String.format("powering vacuum cleaner"));
+        } else if (gamepad1.x) {
+            intakeMotor.setPower(-0.6);
+            telemetry.addLine(String.format("powering vacuum cleaner BACK"));
+        } else {
+            intakeMotor.setPower(0);
+            telemetry.addLine(String.format("vacuum cleaner on standby"));
+        }
+
+        //More Telemetry
+        if (intakeLiftInHome) {
+            telemetry.addLine(String.format("intake lifted"));
+        } else {
+            telemetry.addLine(String.format("intake lowered"));
+        }
+    }
+    //endregion
+
+    //region EMERGENCY
+    public void emergencyModeControls() {
+        updateDriverAControls();
+
+        //ALL DRIVER B CONTROLS
+        if (gamepad2.dpad_up )//&& slideMotorLeft.getCurrentPosition() < 3500)
+        {
+            slideMotorLeft.setPower(0.7);
+            slideMotorRight.setPower(0.7);
+            telemetry.addLine(String.format("slide goes up"));
+        }
+        if (gamepad2.dpad_down )//&& slideMotorLeft.getCurrentPosition() > 100)
+        {
+            slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);
+            telemetry.addLine(String.format("slide goes down"));
+        }
+        if (!gamepad2.dpad_up ) //&& !gamepad2.dpad_down) //&& (Math.abs(targetPosition - slidePos)<15))
+        {
+            slideMotorLeft.setPower(0);
+            slideMotorRight.setPower(0);
+            telemetry.addLine(String.format("slide on standby"));
+        }
+        if (gamepad2.dpad_left) {
+            telemetry.addLine(String.format("slide goes full down"));
+        }
+
+        telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
+        telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
 
 
-    //INITIALIZE
+        //flipping thing | Y button
+        if (y2Released && armInHome) {
+            y2Released = false;
+            y2Pressed = false;
+            armInHome = false;
+            armLeftServo.setPosition(0.95);
+            armRightServo.setPosition(0.05);
+        } else if (y2Released) {
+            y2Released = false;
+            y2Pressed = false;
+            armInHome = true;
+            armLeftServo.setPosition(0);
+            armRightServo.setPosition(1);
+        }
+
+        //Arm low position | X button
+        if (x2Released && pushPopInHome) {
+            x2Released = false;
+            x2Pressed = false;
+            pushPopInHome = false;
+
+            armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);
+        } else if (x2Released) {
+            x2Released = false;
+            x2Pressed = false;
+            pushPopInHome = true;
+
+            armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);
+        }
+
+        //claw servo | A button
+        if (a2Released && clawInHome) {
+            a2Released = false;
+            a2Pressed = false;
+            clawInHome = false;
+            clawServo.setPosition(0);
+        } else if (a2Released) {
+            a2Released = false;
+            a2Pressed = false;
+            clawInHome = true;
+            clawServo.setPosition(0.3);
+        }
+
+        //airplane | Bumpers
+        if (gamepad2.left_bumper && gamepad2.right_bumper) {
+            airplaneServo.setPosition(0.5);
+        }
+
+        //Telemetry
+        telemetry.addData("servo is at", clawServo.getPosition());
+        telemetry.update();
+        if (armInHome) {
+            telemetry.addLine(String.format("arm in"));
+        } else {
+            telemetry.addLine(String.format("arm out"));
+        }
+        if (clawInHome) {
+            telemetry.addLine(String.format("claws in"));
+        } else {
+            telemetry.addLine(String.format("claws out"));
+        }
+        if (pushPopInHome) {
+            telemetry.addLine(String.format("push pop in"));
+        } else {
+            telemetry.addLine(String.format("push pop out"));
+        }
+    }
+    //endregion
+
+    //region INITIALIZE
     public void driverAInitialize() {
         //modes
         confirmA = false;
@@ -297,8 +453,9 @@ public class TetrisTest extends LinearOpMode {
         armLeftServo.setPosition(0.99);
         armRightServo.setPosition(0.01);
     }
+    //endregion
 
-    //BUTTON UPDATES
+    //region BUTTON UPDATES
     public void updateDriverAButtons() {
         //a
         if (gamepad1.a) {
@@ -357,8 +514,9 @@ public class TetrisTest extends LinearOpMode {
             a2Released = true;
         }
     }
+    //endregion
 
-    //TETRIS TELEMETRY
+    //region TETRIS TELEMETRY
     public void updateTetrisThing() //WORKS
     {
         //cursor flashing
@@ -566,6 +724,5 @@ public class TetrisTest extends LinearOpMode {
             }
         }
     }
-
-
+    //endregion
 }
