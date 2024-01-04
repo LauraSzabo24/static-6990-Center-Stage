@@ -19,6 +19,15 @@ import Auto.Mailbox;
 
 @TeleOp
 public class TetrisTest extends LinearOpMode {
+    /* TO-DO
+    - make airplane launcher toggle
+    - make airplane launcher in manual
+    - tetris x
+    - tetris y
+    - tetris z
+    - tetris little push
+     */
+
     //GLOBAL VARIABLES
     //region TEMPORARY
     Vector2d targetAVector = new Vector2d(45, 45);
@@ -152,6 +161,11 @@ public class TetrisTest extends LinearOpMode {
             case MANUAL:
                 //DRIVER A
                 updateDriverAControls();
+                if (b1Released) {
+                    b1Released = false;
+                    b1Pressed = false;
+                    confirmA = true;
+                }
 
                 //TRANSFER TO HANGING | Driver B stick buttons
                 if (gamepad2.right_stick_button || gamepad2.left_stick_button) {
@@ -162,14 +176,11 @@ public class TetrisTest extends LinearOpMode {
                 printAll();
                 updateTetrisThing();
 
-                //TEST TRAJECTORIES
-                if (gamepad1.a) {
-                    Trajectory traj1 = drive.trajectoryBuilder(poseEstimate)
-                            .splineTo(targetAVector, targetAHeading)
-                            .build();
-
-                    drive.followTrajectoryAsync(traj1);
-
+                //Tetris Pixel Placing | checks for confirmation of both drivers | runs first position only
+                if (confirmA && confirmB) {
+                    int[] place1 = firstPos;
+                    int[] place2 = secPos;
+                    runPixelPlacing1(place1);
                     state = Mode.AUTO;
                 }
                 break;
@@ -177,9 +188,11 @@ public class TetrisTest extends LinearOpMode {
                 if (gamepad1.x) {
                     drive.breakFollowing();
                     state = Mode.MANUAL;
+                    resetTetris();
                 }
                 if (!drive.isBusy()) {
                     state = Mode.MANUAL;
+                    resetTetris();
                 }
                 break;
             case EMERGENCY:
@@ -400,7 +413,7 @@ public class TetrisTest extends LinearOpMode {
         confirmB = false;
         previousOutput = "";
         boxRow = true;
-        colors = new String[]{"", ""};
+        colors = new String[]{"@", "@"};
         makeGrid();
         printAll();
 
@@ -513,6 +526,100 @@ public class TetrisTest extends LinearOpMode {
         } else if (a2Pressed) {
             a2Released = true;
         }
+    }
+    //endregion
+
+    //region TETRIS PATH GENERATION
+    public void resetTetris()
+    {
+        if (colors[0].equals("") || colors[1].equals("")) {
+            colors = new String[]{"@", "@"};
+        }
+        confirmB = false;
+        confirmA = false;
+        firstPos = new int[]{-1,-1};
+        secPos = new int[]{-1,-1};
+    }
+
+    public void runPixelPlacing1(int[] target1) {
+        position1 = new double[2];
+        telemetry.addData("target1 positioning " + target1[0] + target1[1] + " ", position1);
+
+        if (target1[0] != -1) {
+            position1[0] = convertX(target1[1], target1[0]);
+            position1[1] = convertY(target1[0]);
+
+            //Move To Coordinate
+            moveToPose(position1, 0);
+            //Move Slides
+            //Place Pixel
+        }
+    }
+    public void moveToPose(double[] position, double zOffset)
+    {
+        position[0] += 0;
+        position[1] += 0;
+        Vector2d positionVector = new Vector2d(0, 0);
+        //Test move to position by moving to a random position
+        Trajectory path = drive.trajectoryBuilder(poseEstimate)
+                .splineTo(positionVector, Math.toRadians(90))
+                .build();
+
+        drive.followTrajectoryAsync(path);
+    }
+
+    public double convertX(int xCoor, int yCoor) //works???
+    {
+        double inches = 20; //distance to last x coordinate unindented
+        if(xCoor%2==1) //indented
+        {
+            inches -= 1.5; //distance between indented and unindented
+            for(int i=13; i>xCoor; i--)
+            {
+                if(i%2==1)
+                {
+                    inches -= 3; //one pixel
+                }
+            }
+        }
+        else{
+            inches -=3; //idk it fixed it
+            for(int i=13; i>xCoor; i--)
+            {
+                if(i%2==0)
+                {
+                    inches -= 3; //one pixel
+                }
+            }
+        }
+        double meepMeepUnit = 1; //inches in meep meepian
+        return inches * meepMeepUnit;
+    }
+    public double convertY(int yCoor) //seems to work
+    {
+        double inches = 10.5; //height for first unindented pixel
+        if(yCoor%2==1) //indented
+        {
+            inches += 2; //height between indented and unindented
+        }
+        for(int i=10; i>yCoor; i--)
+        {
+            if((yCoor%2==1) && (i%2==1)) //indented
+            {
+                inches += 4; //height between two pixels indented
+            }
+            else if((yCoor%2==0) && (i%2==0)) //indented
+            {
+                inches += 4; //height between two pixels unindented
+            }
+        }
+        double slideValue = 1; // 1 inch = ? slide value
+        double initialSlideValue = 0; //0 position for slides
+        return (inches * slideValue) + initialSlideValue;
+    }
+    public void convertZ() //add later
+    {
+
     }
     //endregion
 
