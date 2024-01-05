@@ -14,7 +14,7 @@ public class FieldCentricTester extends LinearOpMode {
     {
         Mailbox mail =  new Mailbox();
 
-        while(true) {
+        /*while(true) {
             if (Mailbox.autoEndHead > 45 && Mailbox.autoEndHead < 135) {
                 telemetry.addData("90 degrees", Mailbox.autoEndHead);
             } else if (Mailbox.autoEndHead > 135 && Mailbox.autoEndHead < 225) {
@@ -27,6 +27,6 @@ public class FieldCentricTester extends LinearOpMode {
                 telemetry.addData("idk", Mailbox.autoEndHead);
             }
             telemetry.update();
-        }
+        }*/
     }
 }

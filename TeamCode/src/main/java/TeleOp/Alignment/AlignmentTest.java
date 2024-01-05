@@ -1,9 +1,8 @@
-package TeleOp.Tetris;
+package TeleOp.Alignment;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.util.Angle;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,13 +11,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.drive.ModifiedMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDriveCancelable;
+
+import java.util.ArrayList;
 
 import Auto.Mailbox;
 
 @TeleOp
-public class TetrisTest extends LinearOpMode {
+public class AlignmentTest extends LinearOpMode {
     /* TO-DO
     - make airplane launcher toggle
     - make airplane launcher in manual
@@ -44,6 +43,7 @@ public class TetrisTest extends LinearOpMode {
     }
     Mode state = Mode.MANUAL;
     Pose2d poseEstimate;
+    public boolean pathComplete;
     //endregion
     //region MOTORS AND SERVOS
     ModifiedMecanumDrive drive;
@@ -119,11 +119,19 @@ public class TetrisTest extends LinearOpMode {
         drive.setPoseEstimate(Mailbox.currentPose);
         driverAInitialize();
         driverBInitialize();
+        pathComplete = false;
+
 
         waitForStart();
         if (isStopRequested()) return;
 
         while (opModeIsActive() && !isStopRequested()) {
+            /*telemetry.addLine("out");
+            ArrayList<Pose2d> poses = Mailbox.getPoses();
+            for(int i = 0; i<poses.size(); i++)
+            {
+                telemetry.addLine("x " + Math.round(poses.get(i).getX()) + " y " + Math.round(poses.get(i).getY()) + " head " + Math.toDegrees(poses.get(i).getHeading()));
+            }*/
             mainLoop();
         }
     }
@@ -139,9 +147,9 @@ public class TetrisTest extends LinearOpMode {
 
         //TELEMETRY
         telemetry.addData("mode", state);
-        telemetry.addData("x", poseEstimate.getX());
-        telemetry.addData("y", poseEstimate.getY());
-        telemetry.addData("heading", poseEstimate.getHeading());
+        telemetry.addData("current x", poseEstimate.getX());
+        telemetry.addData("current y", poseEstimate.getY());
+        telemetry.addData("current heading", poseEstimate.getHeading());
         telemetry.addData("isDriveBusy ", drive.isBusy());
 
         //TRANSFER TO EMERGENCY | both bumpers and any of the directions on the pad
@@ -172,7 +180,7 @@ public class TetrisTest extends LinearOpMode {
                     state = Mode.HANGING;
                 }
 
-                //DRIVER B | updates tetris and prints
+                //DRIVER B | updates and prints
                 printAll();
                 updateTetrisThing();
 
@@ -235,7 +243,7 @@ public class TetrisTest extends LinearOpMode {
         Vector2d input = new Vector2d(
                 -((gamepad1.left_stick_y)* multiply)/speed,
                 -((gamepad1.left_stick_x)* multiply)/speed
-        ).rotated(-poseEstimate.getHeading() + Math.toRadians(240));
+        ).rotated(-poseEstimate.getHeading());
 
         drive.setWeightedDrivePower(
                 new Pose2d(
@@ -557,20 +565,28 @@ public class TetrisTest extends LinearOpMode {
     }
     public void moveToPose(double[] position, double zOffset)
     {
-        position[0] += 0;
-        position[1] += 0;
-        Vector2d positionVector = new Vector2d(0, 0);
-        //Test move to position by moving to a random position
-        Trajectory path = drive.trajectoryBuilder(poseEstimate)
-                .splineTo(positionVector, Math.toRadians(90))
-                .build();
+        pathComplete = false;
+        position[0] -= 60;
+        Vector2d positionVector = new Vector2d(0, -40);
+        Pose2d start = poseEstimate;
 
-        drive.followTrajectoryAsync(path);
+        //while((poseEstimate.getY()-(-74))<5) {
+            if (!drive.isBusy()) {
+                telemetry.addData("location x ", start.getX());
+                telemetry.addData("location y ", start.getY());
+                telemetry.addData("location head ", start.getHeading());
+                Trajectory path = drive.trajectoryBuilder(start)
+                        .splineTo(positionVector, Math.toRadians(180))
+                        .build();
+                drive.followTrajectoryAsync(path);
+            }
+        //}
+        pathComplete = true;
     }
 
     public double convertX(int xCoor, int yCoor) //works???
     {
-        double inches = 20; //distance to last x coordinate unindented
+        double inches = 6; //distance to last x coordinate unindented
         if(xCoor%2==1) //indented
         {
             inches -= 1.5; //distance between indented and unindented

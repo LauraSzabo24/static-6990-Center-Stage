@@ -258,7 +258,7 @@ public class VariantBlueTetris extends OpMode {
     public void loop()
     {
         //test
-        telemetry.addData("imu direction" + dirTestIMU, Mailbox.autoEndHead);
+        //telemetry.addData("imu direction" + dirTestIMU, Mailbox.autoEndHead);
 
         //ONLY FOR MEET ONE/TWO
         emergencyMode = true;

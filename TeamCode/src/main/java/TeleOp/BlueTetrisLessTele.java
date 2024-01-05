@@ -254,7 +254,7 @@ public class BlueTetrisLessTele extends OpMode {
     public void loop()
     {
         //test
-        telemetry.addData("imu direction" + dirTestIMU, Mailbox.autoEndHead);
+        //telemetry.addData("imu direction" + dirTestIMU, Mailbox.autoEndHead);
 
         //ONLY FOR MEET ONE/TWO
         emergencyMode = true;
@@ -433,15 +433,15 @@ public class BlueTetrisLessTele extends OpMode {
         }
 
         //strange math that somehow works
-        double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270));
+       // double botHeading = Math.toRadians(Mailbox.autoEndHead) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + Math.toRadians(270));
 
-        telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
+       /* telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
         telemetry.addData("bot value", Math.toDegrees(botHeading));
         // Rotate the movement direction counter to the bot's rotation
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);*/
 
-        rotX = rotX * 1.1;  // Counteract imperfect strafing
+        /*rotX = rotX * 1.1;  // Counteract imperfect strafing
 
         // Denominator is the largest motor power (absolute value) or 1
         // This ensures all the powers maintain the same ratio,
@@ -459,7 +459,7 @@ public class BlueTetrisLessTele extends OpMode {
         telemetry.addData("frontLeft ", frontLeftPower);
         telemetry.addData("backLeft ", backLeftPower);
         telemetry.addData("frontRight ", frontRightPower);
-        telemetry.addData("backRight ", backRightPower);
+        telemetry.addData("backRight ", backRightPower);*/
     }
 
 

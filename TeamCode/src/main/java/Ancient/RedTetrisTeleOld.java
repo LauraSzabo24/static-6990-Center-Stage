@@ -284,7 +284,7 @@ public class RedTetrisTeleOld extends LinearOpMode {
 
         //telemetry
         telemetry.addData("mode ", state);
-        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", Mailbox.autoEndHead);
+        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", state);
         //telemetry.addData("servo position in ", armLeftServo.getPosition());
 
         //updates
@@ -365,7 +365,7 @@ public class RedTetrisTeleOld extends LinearOpMode {
     public void mainLoop() {
         telemetry.addData("mode ", state);
         //test - field centric
-        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", Mailbox.autoEndHead);
+        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", state);
 
         //button update
         updateDriverAButtons();

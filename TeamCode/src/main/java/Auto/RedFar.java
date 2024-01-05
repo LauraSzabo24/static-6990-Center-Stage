@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.drive.NewMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -22,6 +22,7 @@ public class RedFar extends LinearOpMode {
     private Servo clawServo, armLeftServo, armRightServo, intakeLift;
     @Override
     public void runOpMode() throws InterruptedException {
+        //region CAMERA DETECTION
         int cameraMonitorViewId = hardwareMap.appContext
                 .getResources().getIdentifier("cameraMonitorViewId",
                         "id", hardwareMap.appContext.getPackageName());
@@ -49,29 +50,24 @@ public class RedFar extends LinearOpMode {
         });
 
         sleep(20);
+        //endregion
 
-        //MOTORS AND SERVOS
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        //region MOTORS AND SERVOS
+        NewMecanumDrive drive = new NewMecanumDrive(hardwareMap);
         intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
         clawServo = hardwareMap.get(Servo.class, "claw");
         armRightServo = hardwareMap.get(Servo.class, "armRightServo");
         armLeftServo = hardwareMap.get(Servo.class, "armLeftServo");
         intakeLift = hardwareMap.get(Servo.class, "intakeLiftServo");
-
+        //endregion
 
         //TRAJECTORIES (left/right in robot perspective)
         Pose2d startPose = new Pose2d(-14, 0, Math.toRadians(-90)); //90
         drive.setPoseEstimate(startPose);
 
-
-        //purple pixel
+        //region RIGHT TRAJECTORY
         TrajectorySequence right = drive.trajectorySequenceBuilder(startPose)
                 .lineToLinearHeading(new Pose2d(-10,-22,Math.toRadians(-120)))
-                .addDisplacementMarker(() -> {
-                    //mailbox
-                    Mailbox mail =  new Mailbox();
-                    mail.setAutoEnd(drive.getPoseEstimate());
-                })
                 .strafeRight(15)
                 .forward(5)
                 //purple pixel
@@ -124,11 +120,9 @@ public class RedFar extends LinearOpMode {
                 })
                 .back(15)
                 .build();
+        //endregion
 
-
-        //CENTERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
-
-
+        //region CENTER TRAJECTORY
         TrajectorySequence center = drive.trajectorySequenceBuilder(startPose)
                 .lineToLinearHeading(new Pose2d(-5,-39,Math.toRadians(-180)))
                 .waitSeconds(1)
@@ -183,10 +177,9 @@ public class RedFar extends LinearOpMode {
                 })
                 .back(15)
                 .build();
+        //endregion
 
-
-        //LEFTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-
+        //region LEFT TRAJECTORY
         TrajectorySequence left = drive.trajectorySequenceBuilder(startPose)
                 .lineToLinearHeading(new Pose2d(-8,-16.5,Math.toRadians(-90)))
                 //purple pixel
@@ -240,12 +233,13 @@ public class RedFar extends LinearOpMode {
                 })
                 .back(15)
                 .build();
-
+        //endregion
 
 
         waitForStart();
         PropDetectorRED.Location place = redDetector.getLocation();
         telemetry.setMsTransmissionInterval(50);
+        Mailbox mail =  new Mailbox();
         if(isStopRequested()) return;
 
         //DRIVING
@@ -253,26 +247,21 @@ public class RedFar extends LinearOpMode {
         if(place != null) {
             switch (place) {
                 case NOT_FOUND:
-                    drive.followTrajectorySequence(right);
+                    drive.followTrajectorySequence(right, mail);
                     break;
                 case CENTER:
-                    drive.followTrajectorySequence(center);
+                    drive.followTrajectorySequence(center, mail);
                     break;
                 case LEFT:
-                    drive.followTrajectorySequence(left);
+                    drive.followTrajectorySequence(left, mail);
 
             }
         }
         else{
-            drive.followTrajectorySequence(right);
+            drive.followTrajectorySequence(right, mail);
         }
 
         //testing
         //drive.followTrajectorySequence(left);
-
-        //mailbox
-        Mailbox mail =  new Mailbox();
-        mail.setAutoEnd(drive.getPoseEstimate());
-
     }
 }

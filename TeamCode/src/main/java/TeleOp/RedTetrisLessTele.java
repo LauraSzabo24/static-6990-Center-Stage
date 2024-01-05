@@ -262,7 +262,7 @@ public class RedTetrisLessTele extends OpMode {
     public void loop()
     {
         //test
-        telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", Mailbox.autoEndHead);
+        //telemetry.addData("dirTestIMU - " + dirTestIMU + " auto end - ", Mailbox.autoEndHead);
 
         //ONLY FOR MEET ONE/TWO
         emergencyMode = true;
@@ -444,30 +444,30 @@ public class RedTetrisLessTele extends OpMode {
         }
 
         //strange math that somehow works
-        double autoEnd = Mailbox.autoEndHead;
-        if(Mailbox.autoEndHead>300)
+        //double autoEnd = Mailbox.autoEndHead;
+        //if(Mailbox.autoEndHead>300)
         {
-            autoEnd -= 360;
+            //autoEnd -= 360;
         }
-        double botHeading = Math.toRadians(autoEnd) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) - Math.toRadians(90));
+        //double botHeading = Math.toRadians(autoEnd) - ((2*Math.PI) - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) - Math.toRadians(90));
 
         telemetry.addData("imu value", Math.toDegrees(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)));
-        telemetry.addData("bot value", Math.toDegrees(botHeading));
+        //telemetry.addData("bot value", Math.toDegrees(botHeading));
         // Rotate the movement direction counter to the bot's rotation
-        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+       // double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        //double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
 
-        rotX = rotX * 1.1;  // Counteract imperfect strafing
+       // rotX = rotX * 1.1;  // Counteract imperfect strafing
 
         // Denominator is the largest motor power (absolute value) or 1
         // This ensures all the powers maintain the same ratio,
         // but only if at least one is out of the range [-1, 1]
-        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        /*double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;
         double backLeftPower = (rotY - rotX + rx) / denominator;
         double frontRightPower = (rotY - rotX - rx) / denominator;
-        double backRightPower = (rotY + rotX - rx) / denominator;
-        motorFrontLeft.setPower(multiply * frontLeftPower/speed);
+        double backRightPower = (rotY + rotX - rx) / denominator;*/
+       /* motorFrontLeft.setPower(multiply * frontLeftPower/speed);
         motorBackLeft.setPower(multiply * backLeftPower/speed);
         motorFrontRight.setPower(multiply * frontRightPower/speed);
         motorBackRight.setPower(multiply * backRightPower/speed);
@@ -475,7 +475,7 @@ public class RedTetrisLessTele extends OpMode {
         telemetry.addData("frontLeft ", frontLeftPower);
         telemetry.addData("backLeft ", backLeftPower);
         telemetry.addData("frontRight ", frontRightPower);
-        telemetry.addData("backRight ", backRightPower);
+        telemetry.addData("backRight ", backRightPower);*/
     }
 
 
