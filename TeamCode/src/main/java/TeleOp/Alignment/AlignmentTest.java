@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.drive.ModifiedMecanumDrive;
+import org.firstinspires.ftc.teamcode.drive.NewMecanumDrive;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDriveCancelable;
 
 import java.util.ArrayList;
 
@@ -43,12 +45,15 @@ public class AlignmentTest extends LinearOpMode {
     }
     Mode state = Mode.MANUAL;
     Pose2d poseEstimate;
+    Pose2d currentLocation;
     public boolean pathComplete;
     //endregion
     //region MOTORS AND SERVOS
-    ModifiedMecanumDrive drive;
+    NewMecanumDrive drive;
     private Servo clawServo, armLeftServo, armRightServo, airplaneServo;
     DcMotorEx intakeMotor, slideMotorLeft, slideMotorRight;
+
+    double xShiftMinimizer;
     //endregion
     //region DRIVER A BUTTON CONTROLS
     private boolean a1Pressed;
@@ -114,7 +119,7 @@ public class AlignmentTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException
     {
         //INITIALIZE
-        drive = new ModifiedMecanumDrive(hardwareMap);
+        drive = new NewMecanumDrive(hardwareMap);
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.setPoseEstimate(Mailbox.currentPose);
         driverAInitialize();
@@ -138,12 +143,16 @@ public class AlignmentTest extends LinearOpMode {
 
     public void mainLoop()
     {
+        //ANTISHIFT
+        telemetry.addData("motor velocity average ", drive.secretAdditionMotorAverage());
+        xShiftMinimizer += (drive.secretAdditionMotorAverage()/45000); //25
+
         //UPDATES
         updateDriverAButtons();
         updateDriverBButtons();
         drive.update();
         telemetry.update();
-        poseEstimate = drive.getPoseEstimate();
+        poseEstimate = new Pose2d(drive.getPoseEstimate().getX() + xShiftMinimizer, drive.getPoseEstimate().getY(), drive.getPoseEstimate().getHeading());
 
         //TELEMETRY
         telemetry.addData("mode", state);
@@ -151,6 +160,10 @@ public class AlignmentTest extends LinearOpMode {
         telemetry.addData("current y", poseEstimate.getY());
         telemetry.addData("current heading", poseEstimate.getHeading());
         telemetry.addData("isDriveBusy ", drive.isBusy());
+
+        telemetry.addData("start x ", currentLocation.getX());
+        telemetry.addData("start y ", currentLocation.getY());
+        telemetry.addData("start head ", currentLocation.getHeading());
 
         //TRANSFER TO EMERGENCY | both bumpers and any of the directions on the pad
         if (leftBumperReleased && rightBumperReleased && (gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_down)) {
@@ -194,7 +207,7 @@ public class AlignmentTest extends LinearOpMode {
                 break;
             case AUTO:
                 if (gamepad1.x) {
-                    drive.breakFollowing();
+                    //drive.breakFollowing();
                     state = Mode.MANUAL;
                     resetTetris();
                 }
@@ -410,6 +423,7 @@ public class AlignmentTest extends LinearOpMode {
     }
     public void driverBInitialize() {
         //tetris material
+        currentLocation = new Pose2d(0,0,0);
         position1 = new double[]{-1,-1};
         position2 = new double[]{-1,-1};
         outputArray = new String[12][14]; //original: 12 13 // new: 12 14
@@ -567,8 +581,10 @@ public class AlignmentTest extends LinearOpMode {
     {
         pathComplete = false;
         position[0] -= 60;
-        Vector2d positionVector = new Vector2d(0, -40);
+        Vector2d positionVector = new Vector2d(40.3, 45);
         Pose2d start = poseEstimate;
+        currentLocation = start;
+        drive.setPoseEstimate(start);
 
         //while((poseEstimate.getY()-(-74))<5) {
             if (!drive.isBusy()) {
@@ -576,9 +592,9 @@ public class AlignmentTest extends LinearOpMode {
                 telemetry.addData("location y ", start.getY());
                 telemetry.addData("location head ", start.getHeading());
                 Trajectory path = drive.trajectoryBuilder(start)
-                        .splineTo(positionVector, Math.toRadians(180))
+                        .lineToLinearHeading(new Pose2d(40.3,-45,Math.toRadians(90)))
                         .build();
-                drive.followTrajectoryAsync(path);
+                drive.followTrajectory(path);
             }
         //}
         pathComplete = true;
@@ -586,7 +602,7 @@ public class AlignmentTest extends LinearOpMode {
 
     public double convertX(int xCoor, int yCoor) //works???
     {
-        double inches = 6; //distance to last x coordinate unindented
+        double inches = 40.3; //distance to last x coordinate unindented
         if(xCoor%2==1) //indented
         {
             inches -= 1.5; //distance between indented and unindented

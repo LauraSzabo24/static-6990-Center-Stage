@@ -142,6 +142,10 @@ public class NewMecanumDrive extends MecanumDrive {
         );
     }
 
+    public double secretAdditionMotorAverage()
+    {
+        return (Math.abs(leftFront.getVelocity())+Math.abs(rightFront.getVelocity())+Math.abs(leftRear.getVelocity())+Math.abs(rightRear.getVelocity()))/4;
+    }
     public TrajectoryBuilder trajectoryBuilder(Pose2d startPose) {
         return new TrajectoryBuilder(startPose, VEL_CONSTRAINT, ACCEL_CONSTRAINT);
     }
@@ -223,7 +227,7 @@ public class NewMecanumDrive extends MecanumDrive {
     }
     public void superSecretAddition(Mailbox mail, int magic)
     {
-        Pose2d current = new Pose2d(this.getPoseEstimate().getX()+14, this.getPoseEstimate().getY(), this.getPoseEstimate().getHeading() - Math.toRadians(-90));
+        Pose2d current = new Pose2d(-this.getPoseEstimate().getY(), this.getPoseEstimate().getX()+14, this.getPoseEstimate().getHeading() - Math.toRadians(-90));
         //Pose2d current = new Pose2d(magic, 0);
         mail.setAutoEnd(current);
     }
