@@ -1,4 +1,4 @@
-package TeleOp.Alignment;
+package TeleOp.Tetris;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -10,16 +10,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.drive.ModifiedMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.NewMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDriveCancelable;
-
-import java.util.ArrayList;
+import org.firstinspires.ftc.teamcode.drive.MecanumDrives.NewMecanumDrive;
 
 import Auto.Mailbox;
 
 @TeleOp
-public class AlignmentTest extends LinearOpMode {
+public class TetrisTest extends LinearOpMode {
     /* TO-DO
     - make airplane launcher toggle
     - make airplane launcher in manual
@@ -46,6 +42,8 @@ public class AlignmentTest extends LinearOpMode {
     Mode state = Mode.MANUAL;
     Pose2d poseEstimate;
     Pose2d currentLocation;
+
+    double poseTester;
     public boolean pathComplete;
     //endregion
     //region MOTORS AND SERVOS
@@ -145,14 +143,15 @@ public class AlignmentTest extends LinearOpMode {
     {
         //ANTISHIFT
         telemetry.addData("motor velocity average ", drive.secretAdditionMotorAverage());
-        xShiftMinimizer += (drive.secretAdditionMotorAverage()/45000); //25
+        xShiftMinimizer -= (drive.secretAdditionMotorAverage()/45000); //25
+        telemetry.addData("pose x tester ", poseTester);
 
         //UPDATES
         updateDriverAButtons();
         updateDriverBButtons();
         drive.update();
         telemetry.update();
-        poseEstimate = new Pose2d(drive.getPoseEstimate().getX() + xShiftMinimizer, drive.getPoseEstimate().getY(), drive.getPoseEstimate().getHeading());
+        poseEstimate = new Pose2d(drive.getPoseEstimate().getX() + xShiftMinimizer, drive.getPoseEstimate().getY() + xShiftMinimizer, drive.getPoseEstimate().getHeading());
 
         //TELEMETRY
         telemetry.addData("mode", state);
@@ -166,7 +165,8 @@ public class AlignmentTest extends LinearOpMode {
         telemetry.addData("start head ", currentLocation.getHeading());
 
         //TRANSFER TO EMERGENCY | both bumpers and any of the directions on the pad
-        if (leftBumperReleased && rightBumperReleased && (gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_down)) {
+        if (leftBumperReleased || rightBumperReleased) //&& (gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_down)
+        {
             leftBumperReleased = false;
             leftBumperPressed = false;
             rightBumperReleased = false;
@@ -238,17 +238,15 @@ public class AlignmentTest extends LinearOpMode {
     public void driving() //Field Centric Driving
     {
         //drivetrain changes in speed | right trigger slow | left trigger fast
+        multiply = 1;
+        speed = 3;
         if (gamepad1.right_trigger > 0) {
-            multiply = 0.01;
-            speed = 3;
-        } else {
             multiply = 0.5;
-            speed = 1;
+            speed = 3;
         }
         if (gamepad1.left_trigger > 0) {
-            multiply = 1;
-        } else {
-            multiply = 0.5;
+            multiply = 0.7;
+            speed = 1;
         }
 
         poseEstimate = drive.getPoseEstimate();
@@ -423,6 +421,7 @@ public class AlignmentTest extends LinearOpMode {
     }
     public void driverBInitialize() {
         //tetris material
+        poseTester = 0;
         currentLocation = new Pose2d(0,0,0);
         position1 = new double[]{-1,-1};
         position2 = new double[]{-1,-1};
@@ -565,7 +564,6 @@ public class AlignmentTest extends LinearOpMode {
 
     public void runPixelPlacing1(int[] target1) {
         position1 = new double[2];
-        telemetry.addData("target1 positioning " + target1[0] + target1[1] + " ", position1);
 
         if (target1[0] != -1) {
             position1[0] = convertX(target1[1], target1[0]);
@@ -580,52 +578,51 @@ public class AlignmentTest extends LinearOpMode {
     public void moveToPose(double[] position, double zOffset)
     {
         pathComplete = false;
-        position[0] -= 60;
-        Vector2d positionVector = new Vector2d(40.3, 45);
+        poseTester = position[0];
+        Vector2d positionVector = new Vector2d(position[0], -45); //40.3 -45
         Pose2d start = poseEstimate;
         currentLocation = start;
         drive.setPoseEstimate(start);
 
         //while((poseEstimate.getY()-(-74))<5) {
-            if (!drive.isBusy()) {
-                telemetry.addData("location x ", start.getX());
-                telemetry.addData("location y ", start.getY());
-                telemetry.addData("location head ", start.getHeading());
-                Trajectory path = drive.trajectoryBuilder(start)
-                        .lineToLinearHeading(new Pose2d(40.3,-45,Math.toRadians(90)))
-                        .build();
-                drive.followTrajectory(path);
-            }
+        if (!drive.isBusy()) {
+            Trajectory path = drive.trajectoryBuilder(start)
+                    .lineToLinearHeading(new Pose2d(positionVector.getX(),positionVector.getY(),Math.toRadians(90)))
+                    .build();
+            drive.followTrajectory(path);
+        }
         //}
         pathComplete = true;
     }
 
     public double convertX(int xCoor, int yCoor) //works???
     {
-        double inches = 40.3; //distance to last x coordinate unindented
+        double inches = 0; //distance to last x coordinate unindented 40.3
+        double toBoard = 21.3;
         if(xCoor%2==1) //indented
         {
-            inches -= 1.5; //distance between indented and unindented
+            inches += 1.5; //distance between indented and unindented
             for(int i=13; i>xCoor; i--)
             {
                 if(i%2==1)
                 {
-                    inches -= 3; //one pixel
+                    inches += 3.05; //one pixel
                 }
             }
         }
         else{
-            inches -=3; //idk it fixed it
+            inches +=3.05; //idk it fixed it
             for(int i=13; i>xCoor; i--)
             {
                 if(i%2==0)
                 {
-                    inches -= 3; //one pixel
+                    inches += 3.05; //one pixel
                 }
             }
         }
+        //inches = 40.3-inches;
         double meepMeepUnit = 1; //inches in meep meepian
-        return inches * meepMeepUnit;
+        return inches + toBoard;
     }
     public double convertY(int yCoor) //seems to work
     {

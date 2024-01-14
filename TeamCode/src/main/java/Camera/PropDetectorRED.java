@@ -29,9 +29,9 @@ public class PropDetectorRED extends OpenCvPipeline {
             new Point(14, 40),
             new Point(140, 120));
     static final Rect CENTER_ROI = new Rect( //make this the correct area
-            new Point(200, 40), //143 0
-            new Point(320, 120)); //282 100
-    static double PERCENT_COLOR_THRESHOLD = 0.10;
+            new Point(150, 40), //143 0
+            new Point(250, 120)); //282 100
+    static double PERCENT_COLOR_THRESHOLD = 0.09;
 
     public PropDetectorRED(Telemetry t) { telemetry = t; }
 
@@ -65,13 +65,16 @@ public class PropDetectorRED extends OpenCvPipeline {
         Scalar highHSVWHITE = new Scalar(180, 30, 255);
         //REFERENCE ENDS HERE
 
-
-
-        Scalar lowHSVRED = new Scalar(160, 30, 100);
-        Scalar highHSVRED = new Scalar(175, 150, 255);
+        /*Scalar lowHSVREDDD = new Scalar(10, 0, 0);
+        Scalar highHSVREDDD = new Scalar(175, 255, 255);*/
+        Scalar lowHSVRED = new Scalar(150, 0, 0);
+        Scalar highHSVRED = new Scalar(180, 255, 255);
+        /*Scalar lowHSVRED = new Scalar(0, 0, 0);
+        Scalar highHSVRED = new Scalar(150, 255, 255);*/
 
         Core.inRange(mat, lowHSVRED, highHSVRED, mat);
         //Core.bitwise_not(mat, mat); //for red only
+
 
         Mat left = mat.submat(LEFT_ROI); //the area on the camera that would be the left prop if it's there
         Mat center = mat.submat(CENTER_ROI); //area on the camera that would be the right prop if it's there
@@ -117,11 +120,15 @@ public class PropDetectorRED extends OpenCvPipeline {
         //draws rectangle
         if(location == Location.LEFT)
         {
-            Imgproc.rectangle(mat, LEFT_ROI, propBoxColor);
+            Imgproc.rectangle(mat, CENTER_ROI, propBoxColor);
         }
         else if(location == Location.CENTER)
         {
-            Imgproc.rectangle(mat, CENTER_ROI, propBoxColor);
+            Imgproc.rectangle(mat, LEFT_ROI, propBoxColor);
+        }
+        else if (location == Location.NOT_FOUND)
+        {
+
         }
         else{
             Imgproc.rectangle(mat, CENTER_ROI, propBoxColor);

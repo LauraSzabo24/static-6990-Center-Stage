@@ -9,7 +9,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-public class PropDetectorBLUE extends OpenCvPipeline {
+public class TetrisXAlignment extends OpenCvPipeline {
     Telemetry telemetry;
     Mat mat = new Mat();
     public enum Location {
@@ -21,19 +21,19 @@ public class PropDetectorBLUE extends OpenCvPipeline {
 
     //for reference only (0,0) in top left
     static final Rect SCREENSIZEBOX = new Rect( //make this the correct area
-            new Point(0, 60),
+            new Point(0, 0),
             new Point(320, 240));
 
     //actual boxes
     static final Rect LEFT_ROI = new Rect( //make this the correct area
-            new Point(14, 60),
+            new Point(14, 40),
             new Point(140, 120));
     static final Rect CENTER_ROI = new Rect( //make this the correct area
-            new Point(143, 0),
-            new Point(282, 120));
-    static double PERCENT_COLOR_THRESHOLD = 0.08;
+            new Point(200, 40), //143 0
+            new Point(320, 120)); //282 100
+    static double PERCENT_COLOR_THRESHOLD = 0.10;
 
-    public PropDetectorBLUE(Telemetry t) { telemetry = t; }
+    public TetrisXAlignment(Telemetry t) { telemetry = t; }
 
     @Override
     public Mat processFrame(Mat input) {
@@ -46,7 +46,7 @@ public class PropDetectorBLUE extends OpenCvPipeline {
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
 
         //FOR REFERENCE
-        /*Scalar lowHSVYELLOW= new Scalar(10, 0, 0);
+        Scalar lowHSVYELLOW= new Scalar(10, 0, 0);
         Scalar highHSVYELLOW = new Scalar(25, 255, 255);
 
         Scalar lowHSVBLUE = new Scalar(70, 100, 0);
@@ -62,13 +62,16 @@ public class PropDetectorBLUE extends OpenCvPipeline {
         Scalar highHSVPURPLE = new Scalar(170, 255, 255);
 
         Scalar lowHSVWHITE= new Scalar(0, 0, 80);
-        Scalar highHSVWHITE = new Scalar(180, 30, 255);*/
+        Scalar highHSVWHITE = new Scalar(180, 30, 255);
         //REFERENCE ENDS HERE
 
-        Scalar lowHSVRED = new Scalar(70, 100, 0);
-        Scalar highHSVRED = new Scalar(110, 255, 200);
+
+
+        Scalar lowHSVRED = new Scalar(160, 30, 100);
+        Scalar highHSVRED = new Scalar(175, 150, 255);
 
         Core.inRange(mat, lowHSVRED, highHSVRED, mat);
+        //Core.bitwise_not(mat, mat); //for red only
 
         Mat left = mat.submat(LEFT_ROI); //the area on the camera that would be the left prop if it's there
         Mat center = mat.submat(CENTER_ROI); //area on the camera that would be the right prop if it's there
@@ -85,20 +88,20 @@ public class PropDetectorBLUE extends OpenCvPipeline {
         telemetry.addData("Center percentage", Math.round(centerValue * 100) + "%");
 
         //is it there or is it not (true = it is there)
-        boolean propLeft = leftValue > PERCENT_COLOR_THRESHOLD;
-        boolean propCenter = centerValue > PERCENT_COLOR_THRESHOLD;
+        boolean propLeft = (leftValue > PERCENT_COLOR_THRESHOLD);
+        boolean propCenter = (centerValue > PERCENT_COLOR_THRESHOLD);
 
         if (propLeft && propCenter) { //if both are there (assume none are there)
             location = Location.NOT_FOUND;
             telemetry.addData("Prop Location", "both center and left");
         }
-        else if (propLeft) {
-            location = Location.CENTER;
-            telemetry.addData("Prop Location", "center");
-        }
-        else if(propCenter) {
-            location = Location.LEFT;
+        else if (propLeft) { //Left
+            location = Location.LEFT; //LEFT
             telemetry.addData("Prop Location", "left");
+        }
+        else if(propCenter) { //Center
+            location = Location.CENTER; //CENTER
+            telemetry.addData("Prop Location", "center");
         }
         else {
             location = Location.NOT_FOUND;
