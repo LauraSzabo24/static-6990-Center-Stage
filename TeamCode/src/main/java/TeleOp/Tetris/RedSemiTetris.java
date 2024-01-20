@@ -289,31 +289,31 @@ public class RedSemiTetris extends LinearOpMode {
         updateDriverAControls();
 
         //ALL DRIVER B CONTROLS
-        if (gamepad2.dpad_up )//&& slideMotorLeft.getCurrentPosition() < 3500)
+        if(gamepad2.dpad_up && slideMotorLeft.getCurrentPosition()<3500 )
         {
             slideMotorLeft.setPower(0.7);
             slideMotorRight.setPower(0.7);
             telemetry.addLine(String.format("slide goes up"));
         }
-        if (gamepad2.dpad_down )//&& slideMotorLeft.getCurrentPosition() > 100)
+        if(gamepad2.dpad_down && slideMotorLeft.getCurrentPosition() > 100)
         {
-            slideMotorLeft.setPower(-0.5);
-            slideMotorRight.setPower(-0.5);
+            slideMotorLeft.setPower(-0.4);
+            slideMotorRight.setPower(-0.4);
             telemetry.addLine(String.format("slide goes down"));
         }
-        if (!gamepad2.dpad_up ) //&& !gamepad2.dpad_down) //&& (Math.abs(targetPosition - slidePos)<15))
+        if(!gamepad2.dpad_up && !gamepad2.dpad_down) //&& (Math.abs(targetPosition - slidePos)<15))
         {
             slideMotorLeft.setPower(0);
             slideMotorRight.setPower(0);
             telemetry.addLine(String.format("slide on standby"));
         }
-        if (gamepad2.dpad_left) {
+        if(gamepad2.dpad_left)
+        {
             telemetry.addLine(String.format("slide goes full down"));
         }
-
+        //double power = returnPower(targetPosition, slideMotorLeft.getCurrentPosition());
         telemetry.addData("right motor position: ", slideMotorRight.getCurrentPosition());
         telemetry.addData("left motor position: ", slideMotorLeft.getCurrentPosition());
-
 
         //flipping thing | Y button
         if (y2Released && armInHome) {

@@ -70,20 +70,16 @@ public class BlueFar extends LinearOpMode {
         TrajectorySequence right = drive.trajectorySequenceBuilder(startPose)
                 .lineToLinearHeading(new Pose2d(-10,22,Math.toRadians(120)))
                 .strafeLeft(15)
-                .forward(5)
+                .forward(7)
                 //purple pixel
-                .addDisplacementMarker(() -> {
+               .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.75);
                         intakeMotor.setPower(-0.7);
                     }
                 })
                 .addTemporalMarker(3, () -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
-                    }
-                    for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.25);
                     }
                 })
 
@@ -126,24 +122,18 @@ public class BlueFar extends LinearOpMode {
 
         //region CENTER
         TrajectorySequence center = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-5,39,Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(-3,40,Math.toRadians(180)))
                 .waitSeconds(1)
                 //purple pixel
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.75);
-                    }
-                    for(int i=0; i<100; i++) {
                         intakeMotor.setPower(-0.7);
                     }
                 })
-                .waitSeconds(1)
+                .back(4)
                 .addTemporalMarker(3, () -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
-                    }
-                    for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.25);
                     }
                 })
 
@@ -184,27 +174,34 @@ public class BlueFar extends LinearOpMode {
 
         //region LEFT
         TrajectorySequence left = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-6,16.5,Math.toRadians(90)))
+                .lineToLinearHeading(new Pose2d(-5,16.5,Math.toRadians(90)))
                 //purple pixel
-                .addDisplacementMarker(() -> {
-                    for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.75);
-                    }
+               .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(-0.7);
                     }
                 })
+                .back(5)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(-0.7);
+                    }
+                })
+                .forward(8)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(-0.7);
+                    }
+                })
+                .waitSeconds(1)
+
+                //yellow pixel
+                .strafeLeft(19)
                 .addTemporalMarker(3, () -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
-                    for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.25);
-                    }
                 })
-
-                //yellow pixel
-                .strafeLeft(19)
                 .lineToLinearHeading(new Pose2d(0,53, Math.toRadians(0)))
                 .waitSeconds(1)
                 .back(100)
