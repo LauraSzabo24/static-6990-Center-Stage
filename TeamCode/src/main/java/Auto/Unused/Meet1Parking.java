@@ -1,4 +1,4 @@
-package Auto;
+package Auto.Unused;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
