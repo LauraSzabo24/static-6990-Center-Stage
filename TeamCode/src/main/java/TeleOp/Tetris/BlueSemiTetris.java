@@ -618,25 +618,25 @@ public class BlueSemiTetris extends LinearOpMode {
         double meepMeepUnit = 1; //inches in meep meepian
         return inches + toBoard;
     }
-    public double convertY(int yCoor) //seems to work
+    public double convertY(int yCoor)
     {
         double inches = 10.5; //height for first unindented pixel
         if(yCoor%2==1) //indented
         {
-            inches += 2; //height between indented and unindented
+            inches += 2.03; //height between indented and unindented
         }
         for(int i=10; i>yCoor; i--)
         {
             if((yCoor%2==1) && (i%2==1)) //indented
             {
-                inches += 4; //height between two pixels indented
+                inches += 4.03; //height between two pixels indented
             }
             else if((yCoor%2==0) && (i%2==0)) //indented
             {
-                inches += 4; //height between two pixels unindented
+                inches += 4.25; //height between two pixels unindented
             }
         }
-        double slideValue = 1; // 1 inch = ? slide value
+        double slideValue = 1.67; // inches to slide value
         double initialSlideValue = 0; //0 position for slides
         return (inches * slideValue) + initialSlideValue;
     }
@@ -647,7 +647,7 @@ public class BlueSemiTetris extends LinearOpMode {
     //endregion
 
     //region TETRIS TELEMETRY
-    public void updateTetrisThing() //WORKS
+    public void updateTetrisThing()
     {
         //cursor flashing
         if (outputArray[cursorY][cursorX] != "◼") {

@@ -201,28 +201,26 @@ public class BlueFarChaotic extends LinearOpMode {
                 .lineToLinearHeading(new Pose2d(4,16.5, Math.toRadians(-70)))
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        lift.setPosition(0.34);
+                        lift.setPosition(0.38);
                     }
                 })
-                .lineToLinearHeading(new Pose2d(6.6,36.7, Math.toRadians(-60)))
+                .lineToLinearHeading(new Pose2d(6.2,37.15, Math.toRadians(-60)))
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        lift.setPosition(0.24); //0.25
-                    }
-                })
-                .addDisplacementMarker(() -> {
-                    for(int i=0; i<100; i++) {
-                        lift.setPosition(0);
+                        lift.setPosition(0.345); //0.25
                     }
                 })
                 //slow it down
-                .back(5)
-                .forward(5)
+                .lineToLinearHeading(new Pose2d(-2.2,45.65, Math.toRadians(-60)))
+                .lineToLinearHeading(new Pose2d(4.4,43.8, Math.toRadians(-73)))
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        lift.setPosition(0);
+                        lift.setPosition(0.05);
                     }
                 })
+                .waitSeconds(0.4)
+                .lineToLinearHeading(new Pose2d(0.6,45.65, Math.toRadians(-90)))
+                .forward(10)
                 .waitSeconds(10)
                 .back(100)
                 .addDisplacementMarker( () -> {
