@@ -589,7 +589,7 @@ public class BlueSemiTetris extends LinearOpMode {
         pathComplete = true;
     }
 
-    public double convertX(int xCoor, int yCoor) //works???
+    public double convertX(int xCoor, int yCoor)
     {
         double inches = 0; //distance to last x coordinate unindented 40.3
         double toBoard = 21.3;

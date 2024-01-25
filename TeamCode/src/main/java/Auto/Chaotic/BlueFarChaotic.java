@@ -133,16 +133,43 @@ public class BlueFarChaotic extends LinearOpMode {
                     }
                 })
                 .back(4)
-                .addTemporalMarker(3, () -> {
+                .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
                 })
 
+                //white pixel
+                .lineToLinearHeading(new Pose2d(-2.2,40.65, Math.toRadians(-73))) //get in range
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        lift.setPosition(0.38);
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(8.7,37, Math.toRadians(-73))) //removing
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        lift.setPosition(0.345); //0.25
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(-2.2,40.65, Math.toRadians(-73))) //back out
+                .lineToLinearHeading(new Pose2d(6,41, Math.toRadians(-73))) //go in
+                .addDisplacementMarker(() -> {
+                    double pos = 0.345;
+                    for(int i=0; i<4; i++) {
+                        lift.setPosition(pos-0.085);
+                    }
+                })
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        lift.setPosition(0.05);
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(0.6,45.65, Math.toRadians(-90)))
+                .forward(40)
+                .lineToLinearHeading(new Pose2d(-20,5,Math.toRadians(0)))
+
                 //yellow pixel
-                .lineToLinearHeading(new Pose2d(0,53, Math.toRadians(0)))
-                .waitSeconds(1)
-                .back(100) //100
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         clawServo.setPosition(0);
@@ -176,8 +203,8 @@ public class BlueFarChaotic extends LinearOpMode {
 
         //region LEFT
         TrajectorySequence left = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-5,18.5,Math.toRadians(90)))
                 //purple pixel
+                .lineToLinearHeading(new Pose2d(-5,18.5,Math.toRadians(90)))
                .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(-0.7);
@@ -189,15 +216,12 @@ public class BlueFarChaotic extends LinearOpMode {
                         intakeMotor.setPower(-0.7);
                     }
                 })
-
-                //.forward(8)
-
-                //yellow pixel
                 .addTemporalMarker(3, () -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
                 })
+                //white pixel
                 .lineToLinearHeading(new Pose2d(4,16.5, Math.toRadians(-70)))
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
@@ -210,19 +234,25 @@ public class BlueFarChaotic extends LinearOpMode {
                         lift.setPosition(0.345); //0.25
                     }
                 })
-                //slow it down
                 .lineToLinearHeading(new Pose2d(-2.2,45.65, Math.toRadians(-60)))
-                .lineToLinearHeading(new Pose2d(4.4,43.8, Math.toRadians(-73)))
+                .lineToLinearHeading(new Pose2d(4.8,43.65, Math.toRadians(-73)))
+                .addDisplacementMarker(() -> {
+                    double pos = 0.345;
+                    for(int i=0; i<4; i++) {
+                        lift.setPosition(pos-0.085);
+                    }
+                })
+                .waitSeconds(0.4)
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         lift.setPosition(0.05);
                     }
                 })
-                .waitSeconds(0.4)
                 .lineToLinearHeading(new Pose2d(0.6,45.65, Math.toRadians(-90)))
-                .forward(10)
-                .waitSeconds(10)
-                .back(100)
+                .forward(40)
+                .lineToLinearHeading(new Pose2d(-20,5,Math.toRadians(0)))
+
+                //yellow
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         clawServo.setPosition(0);
