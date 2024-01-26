@@ -26,12 +26,12 @@ public class PropDetectorBLUE extends OpenCvPipeline {
 
     //actual boxes
     static final Rect LEFT_ROI = new Rect( //make this the correct area
-            new Point(14, 60),
-            new Point(140, 120));
+            new Point(100, 60),
+            new Point(170, 120));
     static final Rect CENTER_ROI = new Rect( //make this the correct area
-            new Point(143, 0),
-            new Point(282, 120));
-    static double PERCENT_COLOR_THRESHOLD = 0.08;
+            new Point(230, 70),
+            new Point(292, 170));
+    static double PERCENT_COLOR_THRESHOLD = 0.2;
 
     public PropDetectorBLUE(Telemetry t) { telemetry = t; }
 

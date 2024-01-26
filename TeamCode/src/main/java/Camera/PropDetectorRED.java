@@ -30,10 +30,10 @@ public class PropDetectorRED extends OpenCvPipeline {
 
     //actual boxes
 
-    public static Point leftCorner1 = new Point(30,60);
-    public static Point leftCorner2 = new Point(80,110);
-    public static Point rightCorner1 = new Point(190,60);
-    public static Point rightCorner2 = new Point(240,100);
+    public static Point leftCorner1 = new Point(90,60);
+    public static Point leftCorner2 = new Point(140,110);
+    public static Point rightCorner1 = new Point(210,60);
+    public static Point rightCorner2 = new Point(260,100);
     private final FtcDashboard dashboard = FtcDashboard.getInstance();
     static final Rect LEFT_ROI = new Rect( //make this the correct area
             leftCorner1,

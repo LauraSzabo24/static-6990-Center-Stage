@@ -79,18 +79,44 @@ public class BlueFarChaotic extends LinearOpMode {
                         intakeMotor.setPower(-0.7);
                     }
                 })
-                .addTemporalMarker(3, () -> {
+                .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
                 })
 
-                .waitSeconds(1)
-                .back(16)
+                //white pixel
+                .lineToLinearHeading(new Pose2d(4,16.5, Math.toRadians(-70)))
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        lift.setPosition(0.38);
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(6.2,38.15, Math.toRadians(-60)))
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        lift.setPosition(0.345); //0.25
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(-2.2,45.65, Math.toRadians(-60)))
+                .lineToLinearHeading(new Pose2d(4.8,43.65, Math.toRadians(-73)))
+                .addDisplacementMarker(() -> {
+                    double pos = 0.345;
+                    for(int i=0; i<4; i++) {
+                        lift.setPosition(pos-0.085);
+                    }
+                })
+                .waitSeconds(0.4)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        lift.setPosition(0.05);
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(0.6,45.65, Math.toRadians(-90)))
+                .forward(40)
+                .lineToLinearHeading(new Pose2d(-20,5,Math.toRadians(0)))
+
                 //yellow pixel
-                .lineToLinearHeading(new Pose2d(0,53, Math.toRadians(0)))
-                .waitSeconds(1)
-                .back(100)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         clawServo.setPosition(0);
@@ -140,20 +166,20 @@ public class BlueFarChaotic extends LinearOpMode {
                 })
 
                 //white pixel
-                .lineToLinearHeading(new Pose2d(-2.2,40.65, Math.toRadians(-73))) //get in range
+                .lineToLinearHeading(new Pose2d(-2.4,40.9, Math.toRadians(-73))) //get in range
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         lift.setPosition(0.38);
                     }
                 })
-                .lineToLinearHeading(new Pose2d(8.7,37, Math.toRadians(-73))) //removing
+                .lineToLinearHeading(new Pose2d(7.1,38.8, Math.toRadians(-73))) //removing 8.7 37
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        lift.setPosition(0.345); //0.25
+                        lift.setPosition(0.335); //0.25
                     }
                 })
-                .lineToLinearHeading(new Pose2d(-2.2,40.65, Math.toRadians(-73))) //back out
-                .lineToLinearHeading(new Pose2d(6,41, Math.toRadians(-73))) //go in
+                .lineToLinearHeading(new Pose2d(-2.2,41.65, Math.toRadians(-73))) //back out 40.65
+                .lineToLinearHeading(new Pose2d(3,42, Math.toRadians(-73))) //go in 41
                 .addDisplacementMarker(() -> {
                     double pos = 0.345;
                     for(int i=0; i<4; i++) {
