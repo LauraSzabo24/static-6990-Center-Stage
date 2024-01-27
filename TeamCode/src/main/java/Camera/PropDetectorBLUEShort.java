@@ -1,19 +1,15 @@
 package Camera;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-        import org.opencv.core.Core;
-        import org.opencv.core.Mat;
-        import org.opencv.core.Point;
-        import org.opencv.core.Rect;
-        import org.opencv.core.Scalar;
-        import org.opencv.imgproc.Imgproc;
-        import org.openftc.easyopencv.OpenCvPipeline;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+import org.openftc.easyopencv.OpenCvPipeline;
 
-        @Config
-public class PropDetectorRED extends OpenCvPipeline {
+public class PropDetectorBLUEShort extends OpenCvPipeline {
     Telemetry telemetry;
     Mat mat = new Mat();
     public enum Location {
@@ -25,25 +21,19 @@ public class PropDetectorRED extends OpenCvPipeline {
 
     //for reference only (0,0) in top left
     static final Rect SCREENSIZEBOX = new Rect( //make this the correct area
-            new Point(0, 0),
+            new Point(0, 60),
             new Point(320, 240));
 
     //actual boxes
-
-    public static Point leftCorner1 = new Point(100,40);
-    public static Point leftCorner2 = new Point(150,80);
-    public static Point rightCorner1 = new Point(210,60);
-    public static Point rightCorner2 = new Point(260,100);
-    private final FtcDashboard dashboard = FtcDashboard.getInstance();
     static final Rect LEFT_ROI = new Rect( //make this the correct area
-            leftCorner1,
-            leftCorner2);
+            new Point(60, 70),
+            new Point(120, 140));
     static final Rect CENTER_ROI = new Rect( //make this the correct area
-            rightCorner1, //143 0
-            rightCorner2); //282 100
-    static double PERCENT_COLOR_THRESHOLD = 0.4;
+            new Point(200, 70),
+            new Point(262, 130));
+    static double PERCENT_COLOR_THRESHOLD = 0.2;
 
-    public PropDetectorRED(Telemetry t) { telemetry = t; }
+    public PropDetectorBLUEShort(Telemetry t) { telemetry = t; }
 
     @Override
     public Mat processFrame(Mat input) {
@@ -56,7 +46,7 @@ public class PropDetectorRED extends OpenCvPipeline {
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
 
         //FOR REFERENCE
-        Scalar lowHSVYELLOW= new Scalar(10, 0, 0);
+        /*Scalar lowHSVYELLOW= new Scalar(10, 0, 0);
         Scalar highHSVYELLOW = new Scalar(25, 255, 255);
 
         Scalar lowHSVBLUE = new Scalar(70, 100, 0);
@@ -72,19 +62,13 @@ public class PropDetectorRED extends OpenCvPipeline {
         Scalar highHSVPURPLE = new Scalar(170, 255, 255);
 
         Scalar lowHSVWHITE= new Scalar(0, 0, 80);
-        Scalar highHSVWHITE = new Scalar(180, 30, 255);
+        Scalar highHSVWHITE = new Scalar(180, 30, 255);*/
         //REFERENCE ENDS HERE
 
-        /*Scalar lowHSVREDDD = new Scalar(10, 0, 0);
-        Scalar highHSVREDDD = new Scalar(175, 255, 255);*/
-        Scalar lowHSVRED = new Scalar(10, 0, 0);
-        Scalar highHSVRED = new Scalar(150, 255, 255);
-        /*Scalar lowHSVRED = new Scalar(0, 0, 0);
-        Scalar highHSVRED = new Scalar(150, 255, 255);*/
+        Scalar lowHSVRED = new Scalar(70, 100, 0);
+        Scalar highHSVRED = new Scalar(110, 255, 200);
 
         Core.inRange(mat, lowHSVRED, highHSVRED, mat);
-        Core.bitwise_not(mat, mat); //for red only
-
 
         Mat left = mat.submat(LEFT_ROI); //the area on the camera that would be the left prop if it's there
         Mat center = mat.submat(CENTER_ROI); //area on the camera that would be the right prop if it's there
@@ -101,19 +85,19 @@ public class PropDetectorRED extends OpenCvPipeline {
         telemetry.addData("Center percentage", Math.round(centerValue * 100) + "%");
 
         //is it there or is it not (true = it is there)
-        boolean propLeft = (leftValue > PERCENT_COLOR_THRESHOLD);
-        boolean propCenter = (centerValue > PERCENT_COLOR_THRESHOLD);
+        boolean propLeft = leftValue > PERCENT_COLOR_THRESHOLD;
+        boolean propCenter = centerValue > PERCENT_COLOR_THRESHOLD;
 
         if (propLeft && propCenter) { //if both are there (assume none are there)
             location = Location.NOT_FOUND;
             telemetry.addData("Prop Location", "both center and left");
         }
-        else if(propCenter) { //Center
-            location = Location.CENTER; //CENTER
+        else if (propLeft) {
+            location = Location.CENTER;
             telemetry.addData("Prop Location", "center");
         }
-        else if (propLeft) { //Left
-            location = Location.LEFT; //LEFT
+        else if(propCenter) {
+            location = Location.LEFT;
             telemetry.addData("Prop Location", "left");
         }
         else {
@@ -128,24 +112,18 @@ public class PropDetectorRED extends OpenCvPipeline {
         Scalar propBoxColor = new Scalar(255, 0, 0); //for box drawing purposes
 
         //draws rectangle
-        Imgproc.rectangle(mat, CENTER_ROI, propBoxColor);
-        Imgproc.rectangle(mat, LEFT_ROI, propBoxColor);
-        /*if(location == Location.LEFT)
-        {
-            Imgproc.rectangle(mat, CENTER_ROI, propBoxColor);
-        }
-        else if(location == Location.CENTER)
+        if(location == Location.LEFT)
         {
             Imgproc.rectangle(mat, LEFT_ROI, propBoxColor);
         }
-        else if (location == Location.NOT_FOUND)
+        else if(location == Location.CENTER)
         {
-
+            Imgproc.rectangle(mat, CENTER_ROI, propBoxColor);
         }
         else{
             Imgproc.rectangle(mat, CENTER_ROI, propBoxColor);
             Imgproc.rectangle(mat, LEFT_ROI, propBoxColor);
-        }*/
+        }
 
         return mat;
     }

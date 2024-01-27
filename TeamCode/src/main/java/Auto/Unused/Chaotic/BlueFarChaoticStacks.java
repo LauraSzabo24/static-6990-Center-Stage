@@ -1,4 +1,4 @@
-package Auto.Chaotic;
+package Auto.Unused.Chaotic;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -17,7 +17,7 @@ import Auto.Mailbox;
 import Camera.PropDetectorBLUE;
 
 @Autonomous
-public class BlueFarChaotic extends LinearOpMode {
+public class BlueFarChaoticStacks extends LinearOpMode {
     OpenCvCamera cam;
     private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight, intakeMotor;
     private Servo clawServo, armLeftServo, armRightServo, lift;

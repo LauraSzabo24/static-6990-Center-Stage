@@ -1,4 +1,4 @@
-package Auto.Normal;
+package Auto.BlueFar;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -17,7 +17,7 @@ import Auto.Mailbox;
 import Camera.PropDetectorBLUE;
 
 @Autonomous
-public class BlueFar extends LinearOpMode {
+public class BlueFarParkEdgeD extends LinearOpMode {
     OpenCvCamera cam;
     private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight, intakeMotor;
     private Servo clawServo, armLeftServo, armRightServo, intakeLift;
@@ -78,24 +78,24 @@ public class BlueFar extends LinearOpMode {
                         intakeMotor.setPower(-0.7);
                     }
                 })
-                .addTemporalMarker(3, () -> {
+
+                .waitSeconds(1)
+                .back(16)
+                .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
                 })
-
-                .waitSeconds(1)
-                .back(16)
                 //yellow pixel
-                .lineToLinearHeading(new Pose2d(0,53, Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(-5,53, Math.toRadians(0)))
                 .waitSeconds(1)
-                .back(100)
+                .back(95)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         clawServo.setPosition(0);
                     }
                 })
-                .strafeRight(31)
+                .strafeRight(27) //31
 
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
@@ -110,7 +110,7 @@ public class BlueFar extends LinearOpMode {
                     }
                 })
                 .forward(10)
-                .strafeLeft(31)
+                .strafeRight(31)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         armLeftServo.setPosition(1);
@@ -132,16 +132,16 @@ public class BlueFar extends LinearOpMode {
                     }
                 })
                 .back(4)
-                .addTemporalMarker(3, () -> {
+                .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
                 })
 
                 //yellow pixel
-                .lineToLinearHeading(new Pose2d(0,53, Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(-5,53, Math.toRadians(0)))
                 .waitSeconds(1)
-                .back(100) //100
+                .back(95) //100
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         clawServo.setPosition(0);
@@ -162,7 +162,7 @@ public class BlueFar extends LinearOpMode {
                     }
                 })
                 .forward(10)
-                .strafeLeft(24)
+                .strafeRight(40)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         armLeftServo.setPosition(1);
@@ -198,14 +198,14 @@ public class BlueFar extends LinearOpMode {
 
                 //yellow pixel
                 .strafeLeft(19)
-                .addTemporalMarker(3, () -> {
+                .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
                 })
-                .lineToLinearHeading(new Pose2d(0,53, Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(-5,53, Math.toRadians(0)))
                 .waitSeconds(1)
-                .back(100)
+                .back(95)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         clawServo.setPosition(0);
@@ -226,7 +226,7 @@ public class BlueFar extends LinearOpMode {
                     }
                 })
                 .forward(10)
-                .strafeLeft(20)
+                .strafeRight(45)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         armLeftServo.setPosition(1);
