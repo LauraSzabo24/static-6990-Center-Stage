@@ -17,7 +17,7 @@ import Auto.Mailbox;
 import Camera.PropDetectorBLUE;
 
 @Autonomous
-public class BlueFarParkCenterD extends LinearOpMode {
+public class BlueFarParkCenterDD extends LinearOpMode {
     OpenCvCamera cam;
     private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight, intakeMotor;
     private Servo clawServo, armLeftServo, armRightServo, intakeLift;
@@ -237,6 +237,9 @@ public class BlueFarParkCenterD extends LinearOpMode {
                 .build();
         //endregion
 
+        TrajectorySequence test = drive.trajectorySequenceBuilder(startPose) //(-14, 0_)
+                .turn(Math.toRadians(52))
+                .build();
 
         waitForStart();
         PropDetectorBLUE.Location place = blueDetector.getLocation();
@@ -247,7 +250,7 @@ public class BlueFarParkCenterD extends LinearOpMode {
         //mailbox
         Mailbox mail =  new Mailbox();
         drive.setPoseEstimate(startPose);
-        if(place != null) {
+       if(place != null) {
             switch (place) {
                 case NOT_FOUND:
                     drive.followTrajectorySequence(right, mail);
@@ -263,6 +266,9 @@ public class BlueFarParkCenterD extends LinearOpMode {
         else{
             drive.followTrajectorySequence(right, mail);
         }
+
+       // drive.followTrajectorySequence(test, mail);
+        mail.setAutoEnd(drive.getPoseEstimate());
 
     }
 }

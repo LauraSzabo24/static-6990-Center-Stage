@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.drive.MecanumDrives.NewMecanumDrive;
 import Auto.Mailbox;
 
 @TeleOp
-public class BlueSemiTetris extends LinearOpMode {
+public class BlueSemiTetrisD extends LinearOpMode {
     /* TO-DO
     - make airplane launcher toggle
     - make airplane launcher in manual
@@ -120,7 +120,8 @@ public class BlueSemiTetris extends LinearOpMode {
         drive = new NewMecanumDrive(hardwareMap);
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.setPoseEstimate(Mailbox.currentPose);
-        drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY(), drive.getPoseEstimate().getHeading() + Math.toRadians(180)));
+        drive.setPoseEstimate(new Pose2d(Mailbox.currentPose.getX(), Mailbox.currentPose.getY(), Mailbox.currentPose.getHeading() + Math.toRadians(-90))); // + Math.toRadians(180)
+        //drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY(), drive.getPoseEstimate().getHeading() + Math.toRadians(-180))); // + Math.toRadians(180)
         driverAInitialize();
         driverBInitialize();
         pathComplete = false;

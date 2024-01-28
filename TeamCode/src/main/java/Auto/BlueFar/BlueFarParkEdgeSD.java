@@ -1,4 +1,4 @@
-package Auto.RedFar;
+package Auto.BlueFar;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -14,17 +14,16 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import Auto.Mailbox;
-import Camera.PropDetectorRED;
-import Camera.PropDetectorREDFar;
+import Camera.PropDetectorBLUE;
 
 @Autonomous
-public class RedFar extends LinearOpMode {
+public class BlueFarParkEdgeSD extends LinearOpMode {
     OpenCvCamera cam;
     private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight, intakeMotor;
     private Servo clawServo, armLeftServo, armRightServo, intakeLift;
     @Override
     public void runOpMode() throws InterruptedException {
-        //region CAMERA DETECTION
+        //region CAMERA
         int cameraMonitorViewId = hardwareMap.appContext
                 .getResources().getIdentifier("cameraMonitorViewId",
                         "id", hardwareMap.appContext.getPackageName());
@@ -32,8 +31,8 @@ public class RedFar extends LinearOpMode {
         WebcamName camera = hardwareMap.get(WebcamName.class, "camera");
         OpenCvCamera cam = OpenCvCameraFactory.getInstance().createWebcam(camera, cameraMonitorViewId);
 
-        PropDetectorREDFar redDetector = new PropDetectorREDFar(telemetry);
-        cam.setPipeline(redDetector);
+        PropDetectorBLUE blueDetector = new PropDetectorBLUE(telemetry);
+        cam.setPipeline(blueDetector);
         cam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
             @Override
@@ -64,18 +63,18 @@ public class RedFar extends LinearOpMode {
         //endregion
 
         //TRAJECTORIES (left/right in robot perspective)
-        Pose2d startPose = new Pose2d(-14, 0, Math.toRadians(-90)); //90
+        Pose2d startPose = new Pose2d(-14, 0, Math.toRadians(90)); //90
         drive.setPoseEstimate(startPose);
 
-        //region RIGHT TRAJECTORY
+
+        //region RIGHT
         TrajectorySequence right = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-10,-22,Math.toRadians(-120)))
-                .strafeRight(15)
-                .forward(5)
+                .lineToLinearHeading(new Pose2d(-10,22,Math.toRadians(120)))
+                .strafeLeft(15)
+                .forward(7)
                 //purple pixel
-                .addDisplacementMarker(() -> {
+               .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.75);
                         intakeMotor.setPower(-0.7);
                     }
                 })
@@ -84,21 +83,19 @@ public class RedFar extends LinearOpMode {
                 .back(16)
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.25);
-                    }
-                    for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
                 })
                 //yellow pixel
-                .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
-                .back(100)
+                .lineToLinearHeading(new Pose2d(-5,53, Math.toRadians(0)))
+                .waitSeconds(1)
+                .back(95)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         clawServo.setPosition(0);
                     }
                 })
-                .strafeLeft(31)
+                .strafeRight(27) //31
 
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
@@ -124,93 +121,33 @@ public class RedFar extends LinearOpMode {
                 .build();
         //endregion
 
-        //region CENTER TRAJECTORY
+        //region CENTER
         TrajectorySequence center = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-5,-39,Math.toRadians(-180)))
-                .addDisplacementMarker(() -> {
-                    for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(-0.7);
-                    }
-                })
-                .back(2)
-                //purple pixel
+                .lineToLinearHeading(new Pose2d(-3,40,Math.toRadians(180)))
                 .waitSeconds(1)
-                .addDisplacementMarker(() -> {
-                    for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(-0.7);
-                    }
-                })
-
-                //yellow pixel
-                .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
-                .addDisplacementMarker(() -> {
-                    for(int i=0; i<100; i++) {
-                        intakeMotor.setPower(0);
-                    }
-                })
-                .back(100)
-                .addDisplacementMarker( () -> {
-                    for(int i=0; i<100; i++) {
-                        clawServo.setPosition(0);
-                    }
-                })
-                .strafeLeft(26)
-
-                .addDisplacementMarker( () -> {
-                    for(int i=0; i<100; i++) {
-                        armLeftServo.setPosition(0);
-                        armRightServo.setPosition(1);
-                    }
-                })
-                .back(18)
-                .addDisplacementMarker( () -> {
-                    for(int i=0; i<100; i++) {
-                        clawServo.setPosition(0.3);
-                    }
-                })
-                .forward(10)
-                .strafeRight(26)
-                .addDisplacementMarker( () -> {
-                    for(int i=0; i<100; i++) {
-                        armLeftServo.setPosition(1);
-                        armRightServo.setPosition(0);
-                    }
-                })
-                .back(15)
-                .build();
-        //endregion
-
-        //region LEFT TRAJECTORY
-        TrajectorySequence left = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-8,-16.5,Math.toRadians(-90)))
                 //purple pixel
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.75);
-                    }
-                    for(int i=0; i<100; i++) {
                         intakeMotor.setPower(-0.7);
                     }
                 })
-
-                //yellow pixel
-                .strafeRight(21)
+                .back(4)
                 .addDisplacementMarker(() -> {
-                    for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.25);
-                    }
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
                 })
-                .lineToLinearHeading(new Pose2d(0,-53, Math.toRadians(0)))
-                .back(100)
+
+                //yellow pixel
+                .lineToLinearHeading(new Pose2d(-5,53, Math.toRadians(0)))
+                .waitSeconds(1)
+                .back(95) //100
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         clawServo.setPosition(0);
                     }
                 })
-                .strafeLeft(20)
+                .strafeRight(24)
 
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
@@ -225,7 +162,7 @@ public class RedFar extends LinearOpMode {
                     }
                 })
                 .forward(10)
-                .strafeRight(20)
+                .strafeRight(40)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         armLeftServo.setPosition(1);
@@ -236,14 +173,82 @@ public class RedFar extends LinearOpMode {
                 .build();
         //endregion
 
+        //region LEFT
+        TrajectorySequence left = drive.trajectorySequenceBuilder(startPose)
+                .lineToLinearHeading(new Pose2d(-5,16.5,Math.toRadians(90)))
+                //purple pixel
+               .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(-0.7);
+                    }
+                })
+                .back(5)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(-0.7);
+                    }
+                })
+                .forward(8)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(-0.7);
+                    }
+                })
+                .waitSeconds(1)
+
+                //yellow pixel
+                .strafeLeft(19)
+                .addDisplacementMarker(() -> {
+                    for(int i=0; i<100; i++) {
+                        intakeMotor.setPower(0);
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(-5,53, Math.toRadians(0)))
+                .waitSeconds(1)
+                .back(95)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0);
+                    }
+                })
+                .strafeRight(20)
+
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        armLeftServo.setPosition(0);
+                        armRightServo.setPosition(1);
+                    }
+                })
+                .back(18)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        clawServo.setPosition(0.3);
+                    }
+                })
+                .forward(10)
+                .strafeRight(45)
+                .addDisplacementMarker( () -> {
+                    for(int i=0; i<100; i++) {
+                        armLeftServo.setPosition(1);
+                        armRightServo.setPosition(0);
+                    }
+                })
+                .back(15)
+                .build();
+        //endregion
+
+        TrajectorySequence test = drive.trajectorySequenceBuilder(startPose) //(-14, 0_)
+                .turn(Math.toRadians(123))
+                .build();
 
         waitForStart();
-        PropDetectorREDFar.Location place = redDetector.getLocation();
+        PropDetectorBLUE.Location place = blueDetector.getLocation();
         telemetry.setMsTransmissionInterval(50);
-        Mailbox mail =  new Mailbox();
         if(isStopRequested()) return;
 
         //DRIVING
+        //mailbox
+        Mailbox mail =  new Mailbox();
         drive.setPoseEstimate(startPose);
         if(place != null) {
             switch (place) {
@@ -261,8 +266,8 @@ public class RedFar extends LinearOpMode {
         else{
             drive.followTrajectorySequence(right, mail);
         }
+        //drive.followTrajectorySequence(test, mail);
+        mail.setAutoEnd(drive.getPoseEstimate());
 
-        //testing
-        //drive.followTrajectorySequence(left);
     }
 }

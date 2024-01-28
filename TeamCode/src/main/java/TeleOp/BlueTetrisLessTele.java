@@ -2,6 +2,7 @@ package TeleOp;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -18,6 +19,7 @@ import Auto.Mailbox;
 //copied last 11/7/2023 12:47 am
 
 @TeleOp
+@Disabled
 public class BlueTetrisLessTele extends OpMode {
     //drivetrain
     IMU imu;
