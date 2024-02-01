@@ -48,7 +48,7 @@ public class RedSemiTetrisD extends LinearOpMode {
     //endregion
     //region MOTORS AND SERVOS
     NewMecanumDrive drive;
-    private Servo clawServo, armLeftServo, armRightServo, airplaneServo;
+    private Servo clawServo, armLeftServo, armRightServo, airplaneServo, flickerServo;
     DcMotorEx intakeMotor, slideMotorLeft, slideMotorRight;
 
     double xShiftMinimizer;
@@ -107,6 +107,7 @@ public class RedSemiTetrisD extends LinearOpMode {
     private boolean armInHome;
     private boolean clawInHome;
     private boolean pushPopInHome;
+    private boolean flickerHome;
     private boolean intakeLiftInHome;
     private boolean confirmA;
     //endregion
@@ -276,11 +277,30 @@ public class RedSemiTetrisD extends LinearOpMode {
             telemetry.addLine(String.format("vacuum cleaner on standby"));
         }
 
+
+        //flipping thing | Y button
+        if (b1Pressed && flickerHome) {
+            b1Released = false;
+            b1Pressed = false;
+            flickerHome = false;
+            flickerServo.setPosition(0.4);
+        } else if (b1Released) {
+            b1Released = false;
+            b1Pressed = false;
+            flickerHome = true;
+            flickerServo.setPosition(0);
+        }
+
         //More Telemetry
         if (intakeLiftInHome) {
             telemetry.addLine(String.format("intake lifted"));
         } else {
             telemetry.addLine(String.format("intake lowered"));
+        }
+        if (flickerHome) {
+            telemetry.addLine(String.format("pixel device lifted"));
+        } else {
+            telemetry.addLine(String.format("pixel device lowered"));
         }
     }
     //endregion
@@ -398,6 +418,10 @@ public class RedSemiTetrisD extends LinearOpMode {
 
         //intake motor
         intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
+        flickerServo = hardwareMap.get(Servo.class, "flickerServo");
+
+        flickerServo.setPosition(0.3);
+
 
         //emergency mode/ button controls
         a1Pressed = false;
@@ -412,6 +436,7 @@ public class RedSemiTetrisD extends LinearOpMode {
         rightBumperReleased = false;
         leftBumperPressed = false;
         leftBumperReleased = false;
+        flickerHome = false;
     }
     public void driverBInitialize() {
         //tetris material
