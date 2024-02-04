@@ -164,11 +164,11 @@ public class RedSemiTetrisD extends LinearOpMode {
             case MANUAL:
                 emergencyModeControls();
                 //DRIVER A
-                if (b1Released) {
+                /*if (b1Released) {
                     b1Released = false;
                     b1Pressed = false;
                     confirmA = true;
-                }
+                }*/
 
                 //TRANSFER TO HANGING | Driver B stick buttons
                 if (gamepad2.right_stick_button || gamepad2.left_stick_button) {
@@ -277,20 +277,6 @@ public class RedSemiTetrisD extends LinearOpMode {
             telemetry.addLine(String.format("vacuum cleaner on standby"));
         }
 
-
-        //flipping thing | Y button
-        if (b1Pressed && flickerHome) {
-            b1Released = false;
-            b1Pressed = false;
-            flickerHome = false;
-            flickerServo.setPosition(0.4);
-        } else if (b1Released) {
-            b1Released = false;
-            b1Pressed = false;
-            flickerHome = true;
-            flickerServo.setPosition(0);
-        }
-
         //More Telemetry
         if (intakeLiftInHome) {
             telemetry.addLine(String.format("intake lifted"));
@@ -341,6 +327,7 @@ public class RedSemiTetrisD extends LinearOpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = false;
+            flickerServo.setPosition(0.4);
             armLeftServo.setPosition(0.95);
             armRightServo.setPosition(0.05);
         } else if (y2Released) {
@@ -351,22 +338,23 @@ public class RedSemiTetrisD extends LinearOpMode {
             armRightServo.setPosition(1);
         }
 
-        //Arm low position | X button
-        /*if (x2Released && pushPopInHome) {
-            x2Released = false;
-            x2Pressed = false;
-            pushPopInHome = false;
 
-            armLeftServo.setPosition(0.7);
-            armRightServo.setPosition(0.3);
-        } else if (x2Released) {
-            x2Released = false;
-            x2Pressed = false;
-            pushPopInHome = true;
+        //flicker | X button
+        if(armInHome) {
+            if (x2Released && flickerHome) {
+                x2Released = false;
+                x2Pressed = false;
+                flickerHome = false;
 
-            armLeftServo.setPosition(0.7);
-            armRightServo.setPosition(0.3);
-        }*/
+                flickerServo.setPosition(0.4);
+            } else if (x2Released) {
+                x2Released = false;
+                x2Pressed = false;
+                flickerHome = true;
+
+                flickerServo.setPosition(0);
+            }
+        }
 
         //claw servo | A button
         if (a2Released && clawInHome) {
