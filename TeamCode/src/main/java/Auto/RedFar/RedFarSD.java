@@ -125,13 +125,13 @@ public class RedFarSD extends LinearOpMode {
 
         //region CENTER TRAJECTORY
         TrajectorySequence center = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-5,-39,Math.toRadians(-180)))
+                .lineToLinearHeading(new Pose2d(-10,-39,Math.toRadians(-180))) //-39
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(-0.7);
                     }
                 })
-                .back(2)
+                .back(8)
                 //purple pixel
                 .waitSeconds(1)
                 .addDisplacementMarker(() -> {
@@ -181,7 +181,7 @@ public class RedFarSD extends LinearOpMode {
 
         //region LEFT TRAJECTORY
         TrajectorySequence left = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-8,-16.5,Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(-5,-16.5,Math.toRadians(-90))) //-8
                 //purple pixel
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {

@@ -98,7 +98,7 @@ public class RedShortCenterDD extends LinearOpMode {
                         clawServo.setPosition(0);
                     }
                 })
-                .strafeLeft(20)
+                .strafeLeft(21)
 
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
@@ -114,7 +114,7 @@ public class RedShortCenterDD extends LinearOpMode {
                 })
                 .waitSeconds(1)
                 .forward(10)
-                .strafeRight(25)
+                .strafeRight(24)
                 .addDisplacementMarker( () -> {
                     for(int i=0; i<100; i++) {
                         armLeftServo.setPosition(1);
@@ -127,13 +127,10 @@ public class RedShortCenterDD extends LinearOpMode {
 
         //region CENTER
         TrajectorySequence center = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-25,-39,Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(-22,-39,Math.toRadians(0))) //-25 -39
                 .waitSeconds(1)
                 //purple pixel
                 .addDisplacementMarker(() -> {
-                    for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.75);
-                    }
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(-0.7);
                     }
@@ -142,9 +139,6 @@ public class RedShortCenterDD extends LinearOpMode {
                 .addTemporalMarker(3, () -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
-                    }
-                    for(int i=0; i<100; i++) {
-                        intakeLift.setPosition(0.25);
                     }
                 })
 
@@ -188,8 +182,8 @@ public class RedShortCenterDD extends LinearOpMode {
 
         //region LEFT
         TrajectorySequence left = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(-21,-16,Math.toRadians(-90)))
-                //purple pixel
+                .lineToLinearHeading(new Pose2d(-20,-17,Math.toRadians(-90)))//-16
+                .back(3)
                 .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeLift.setPosition(0.75);
@@ -198,7 +192,9 @@ public class RedShortCenterDD extends LinearOpMode {
                         intakeMotor.setPower(-0.7);
                     }
                 })
-                .addTemporalMarker(3, () -> {
+                .back(3)
+                //purple pixel
+                .addDisplacementMarker(() -> {
                     for(int i=0; i<100; i++) {
                         intakeMotor.setPower(0);
                     }
@@ -246,9 +242,7 @@ public class RedShortCenterDD extends LinearOpMode {
                 .build();
         //endregion
 
-        TrajectorySequence test = drive.trajectorySequenceBuilder(startPose) //(-14, 0_)
-                .turn(Math.toRadians(123))
-                .build();
+
 
         waitForStart();
         PropDetectorRED.Location place = redDetector.getLocation();

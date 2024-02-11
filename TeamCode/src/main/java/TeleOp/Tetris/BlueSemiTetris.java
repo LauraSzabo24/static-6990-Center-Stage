@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.drive.MecanumDrives.NewMecanumDrive;
 import Auto.Mailbox;
 
 @TeleOp
-public class RedSemiTetrisD extends LinearOpMode {
+public class BlueSemiTetris extends LinearOpMode {
     /* TO-DO
     - make airplane launcher toggle
     - make airplane launcher in manual
@@ -106,8 +106,8 @@ public class RedSemiTetrisD extends LinearOpMode {
     private double multiply;
     private boolean armInHome;
     private boolean clawInHome;
-    private boolean pushPopInHome;
     private boolean flickerHome;
+    private boolean pushPopInHome;
     private boolean intakeLiftInHome;
     private boolean confirmA;
     //endregion
@@ -122,6 +122,7 @@ public class RedSemiTetrisD extends LinearOpMode {
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.setPoseEstimate(Mailbox.currentPose);
         drive.setPoseEstimate(new Pose2d(Mailbox.currentPose.getX(), Mailbox.currentPose.getY(), Mailbox.currentPose.getHeading() + Math.toRadians(-90))); // + Math.toRadians(180)
+        //drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY(), drive.getPoseEstimate().getHeading() + Math.toRadians(-180))); // + Math.toRadians(180)
         driverAInitialize();
         driverBInitialize();
         pathComplete = false;
@@ -164,11 +165,11 @@ public class RedSemiTetrisD extends LinearOpMode {
             case MANUAL:
                 emergencyModeControls();
                 //DRIVER A
-                /*if (b1Released) {
+                if (b1Released) {
                     b1Released = false;
                     b1Pressed = false;
                     confirmA = true;
-                }*/
+                }
 
                 //TRANSFER TO HANGING | Driver B stick buttons
                 if (gamepad2.right_stick_button || gamepad2.left_stick_button) {
@@ -249,7 +250,7 @@ public class RedSemiTetrisD extends LinearOpMode {
         Vector2d input = new Vector2d(
                 -((gamepad1.left_stick_y)* multiply)/speed,
                 -((gamepad1.left_stick_x)* multiply)/speed
-        ).rotated(-poseEstimate.getHeading());
+        ).rotated(-poseEstimate.getHeading() + Math.toRadians(0));
 
         drive.setWeightedDrivePower(
                 new Pose2d(
@@ -327,7 +328,7 @@ public class RedSemiTetrisD extends LinearOpMode {
             y2Released = false;
             y2Pressed = false;
             armInHome = false;
-            flickerServo.setPosition(0.4);
+            flickerServo.setPosition(0.65);
             armLeftServo.setPosition(0.95);
             armRightServo.setPosition(0.05);
         } else if (y2Released) {
@@ -346,15 +347,32 @@ public class RedSemiTetrisD extends LinearOpMode {
                 x2Pressed = false;
                 flickerHome = false;
 
-                flickerServo.setPosition(0.4);
+                flickerServo.setPosition(0.65);
             } else if (x2Released) {
                 x2Released = false;
                 x2Pressed = false;
                 flickerHome = true;
 
-                flickerServo.setPosition(0);
+                flickerServo.setPosition(0.22);
             }
         }
+
+        //Arm low position | X button
+        /*if (x2Released && pushPopInHome) {
+            x2Released = false;
+            x2Pressed = false;
+            pushPopInHome = false;
+
+            armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);
+        } else if (x2Released) {
+            x2Released = false;
+            x2Pressed = false;
+            pushPopInHome = true;
+
+            armLeftServo.setPosition(0.7);
+            armRightServo.setPosition(0.3);
+        }*/
 
         //claw servo | A button
         if (a2Released && clawInHome) {
@@ -408,8 +426,7 @@ public class RedSemiTetrisD extends LinearOpMode {
         intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intakeMotor");
         flickerServo = hardwareMap.get(Servo.class, "flickerServo");
 
-        flickerServo.setPosition(0.3);
-
+        flickerServo.setPosition(0.65);
 
         //emergency mode/ button controls
         a1Pressed = false;
@@ -602,7 +619,7 @@ public class RedSemiTetrisD extends LinearOpMode {
         pathComplete = true;
     }
 
-    public double convertX(int xCoor, int yCoor) //works???
+    public double convertX(int xCoor, int yCoor)
     {
         double inches = 0; //distance to last x coordinate unindented 40.3
         double toBoard = 21.3;
@@ -631,25 +648,25 @@ public class RedSemiTetrisD extends LinearOpMode {
         double meepMeepUnit = 1; //inches in meep meepian
         return inches + toBoard;
     }
-    public double convertY(int yCoor) //seems to work
+    public double convertY(int yCoor)
     {
         double inches = 10.5; //height for first unindented pixel
         if(yCoor%2==1) //indented
         {
-            inches += 2; //height between indented and unindented
+            inches += 2.03; //height between indented and unindented
         }
         for(int i=10; i>yCoor; i--)
         {
             if((yCoor%2==1) && (i%2==1)) //indented
             {
-                inches += 4; //height between two pixels indented
+                inches += 4.03; //height between two pixels indented
             }
             else if((yCoor%2==0) && (i%2==0)) //indented
             {
-                inches += 4; //height between two pixels unindented
+                inches += 4.25; //height between two pixels unindented
             }
         }
-        double slideValue = 1; // 1 inch = ? slide value
+        double slideValue = 1.67; // inches to slide value
         double initialSlideValue = 0; //0 position for slides
         return (inches * slideValue) + initialSlideValue;
     }
@@ -660,7 +677,7 @@ public class RedSemiTetrisD extends LinearOpMode {
     //endregion
 
     //region TETRIS TELEMETRY
-    public void updateTetrisThing() //WORKS
+    public void updateTetrisThing()
     {
         //cursor flashing
         if (outputArray[cursorY][cursorX] != "◼") {

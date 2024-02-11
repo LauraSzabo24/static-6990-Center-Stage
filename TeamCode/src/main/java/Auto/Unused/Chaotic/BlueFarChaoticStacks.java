@@ -18,7 +18,6 @@ import Auto.Mailbox;
 import Camera.PropDetectorBLUE;
 
 @Autonomous
-@Disabled
 public class BlueFarChaoticStacks extends LinearOpMode {
     OpenCvCamera cam;
     private DcMotorEx motorFrontLeft, motorBackLeft, motorFrontRight, motorBackRight, intakeMotor;
@@ -67,7 +66,7 @@ public class BlueFarChaoticStacks extends LinearOpMode {
         //TRAJECTORIES (left/right in robot perspective)
         Pose2d startPose = new Pose2d(-14, 0, Math.toRadians(90)); //90
         drive.setPoseEstimate(startPose);
-        lift.setPosition(1);
+        lift.setPosition(0.793); //1 down
 
 
         //region RIGHT
@@ -312,6 +311,27 @@ public class BlueFarChaoticStacks extends LinearOpMode {
                 .build();
         //endregion
 
+        TrajectorySequence test = drive.trajectorySequenceBuilder(startPose)
+                .addDisplacementMarker( () -> {
+                    intakeMotor.setPower(-0.7);
+                })
+                .forward(5)
+                .waitSeconds(2)
+                .back(1)
+                .addDisplacementMarker( () -> {
+                    lift.setPosition(0.85);
+                })
+                .back(1)
+                .addDisplacementMarker( () -> {
+                    lift.setPosition(0.95);
+                })
+                .back(4)
+                .addDisplacementMarker( () -> {
+                    intakeMotor.setPower(0);
+                })
+                .build();
+
+
 
         waitForStart();
         PropDetectorBLUE.Location place = blueDetector.getLocation();
@@ -322,7 +342,7 @@ public class BlueFarChaoticStacks extends LinearOpMode {
         //mailbox
         Mailbox mail =  new Mailbox();
         drive.setPoseEstimate(startPose);
-        if(place != null) {
+        /*if(place != null) {
             switch (place) {
                 case NOT_FOUND:
                     drive.followTrajectorySequence(right, mail);
@@ -337,7 +357,8 @@ public class BlueFarChaoticStacks extends LinearOpMode {
         }
         else{
             drive.followTrajectorySequence(right, mail);
-        }
+        }*/
+        drive.followTrajectorySequence(test, mail);
 
     }
 }

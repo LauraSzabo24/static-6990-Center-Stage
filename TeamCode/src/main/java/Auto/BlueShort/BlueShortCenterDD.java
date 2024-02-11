@@ -65,7 +65,7 @@ public class BlueShortCenterDD extends LinearOpMode {
 
         //region RIGHT
         TrajectorySequence right = drive.trajectorySequenceBuilder(startPose) //(-14, 0)
-                .lineToLinearHeading(new Pose2d(-21, -21, Math.toRadians(-120))) //-10, -22 -120
+                .lineToLinearHeading(new Pose2d(-22, -22, Math.toRadians(-120))) //-10, -22 -120
                 .strafeRight(10) //right
                 .forward(3)
                 //purple pixel
@@ -90,7 +90,7 @@ public class BlueShortCenterDD extends LinearOpMode {
                         clawServo.setPosition(0);
                     }
                 })
-                .strafeRight(20)
+                .strafeRight(21)
 
                 .addDisplacementMarker(() -> {
                     for (int i = 0; i < 100; i++) {
@@ -106,7 +106,7 @@ public class BlueShortCenterDD extends LinearOpMode {
                 })
                 .waitSeconds(1)
                 .forward(10)
-                .strafeLeft(31)
+                .strafeLeft(26) //31
                 .addDisplacementMarker(() -> {
                     for (int i = 0; i < 100; i++) {
                         armLeftServo.setPosition(1);
@@ -119,7 +119,7 @@ public class BlueShortCenterDD extends LinearOpMode {
 
         //region CENTER
         TrajectorySequence center = drive.trajectorySequenceBuilder(startPose) //(-14, 0)
-                .lineToLinearHeading(new Pose2d(-9, -39, Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(-11, -39, Math.toRadians(180))) //-9 -39
                 .back(5)
                 //purple pixel
                 .addDisplacementMarker(() -> {
