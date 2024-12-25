@@ -25,4 +25,4 @@ Guide/Breakdown: All important code files are found under TeamCode/src/main/java
 
     -Ancient - These are old files that I didn't want to delete. They can be ignored. 
 
-Thank you for visiting this repository!! I hope the way I have the files isn't too confusing or messy. All of the important files should have comments to help sort out the chaos. Have a nice day!!
+Thank you for visiting this repository!! I hope the way I have the files isn't too confusing or messy. All of the important files should have comments to help sort out the chaos. Have a nice day!! 
